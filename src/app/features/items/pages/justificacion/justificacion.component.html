@@ -1,0 +1,43 @@
+<div class="max-w-3xl mx-auto">
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold">Justificación de Ingresos</h1>
+    <p class="text-sm text-slate-600">Crea y administra soportes rápidos. Los cambios se guardan localmente (simulación).</p>
+  </header>
+
+  <section class="mb-6">
+    <form (ngSubmit)="save()" class="space-y-3">
+      <div>
+        <label class="block text-sm font-medium">Título</label>
+        <input [(ngModel)]="model.title" name="title" class="w-full rounded border px-3 py-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium">Descripción</label>
+        <textarea [(ngModel)]="model.body" name="body" rows="4" class="w-full rounded border px-3 py-2"></textarea>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Guardar</button>
+        <button type="button" (click)="startNew()" class="px-4 py-2 border rounded">Nuevo</button>
+        <a class="ml-auto text-sm text-blue-600" routerLink="/items/declaracion">Volver a Declaraciones</a>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h2 class="text-lg font-semibold mb-3">Registros guardados</h2>
+    <ul class="space-y-3">
+      <li *ngFor="let it of items$ | async" class="p-3 border rounded flex items-start justify-between gap-3">
+        <div>
+          <div class="font-semibold">{{ it.title }}</div>
+          <div class="text-sm text-slate-600">{{ it.body }}</div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <button class="px-3 py-1 text-sm border rounded" (click)="edit(it)">Editar</button>
+          <button class="px-3 py-1 text-sm bg-red-600 text-white rounded" (click)="remove(it.id)">Eliminar</button>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+</div>

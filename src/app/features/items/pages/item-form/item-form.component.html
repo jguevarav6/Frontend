@@ -1,0 +1,168 @@
+<section class="forms-library px-4 sm:px-6 md:px-8 py-6 md:py-8">
+  <!-- Encabezado -->
+  <div class="library-header text-center mb-6 md:mb-8">
+    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Biblioteca de Formularios</h1>
+    <p class="text-sm sm:text-base md:text-lg text-gray-600">
+      Accede a todos los formularios fiscales que necesitas. Utiliza nuestros filtros para encontrar el documento correcto de forma rápida y sencilla.
+    </p>
+  </div>
+
+  <!-- Controles -->
+  <form class="library-controls flex flex-col gap-3 md:flex-row md:items-center md:gap-4 mb-5 md:mb-6" role="search" aria-label="Buscar y filtrar formularios">
+    <label for="formSearch" class="sr-only">Buscar formulario</label>
+    <input
+      id="formSearch"
+      type="search"
+      placeholder="Buscar por nombre o número de formulario..."
+      class="search-input flex-1 w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-card-dark/60 px-4 py-2.5 text-sm outline-none ring-0 focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+      data-search
+    />
+
+    <div class="filters grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+      <label class="sr-only" for="fy">Año Fiscal</label>
+      <select id="fy"
+        class="filter-select rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-card-dark/60 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+        data-filter-year>
+        <option value="">Año Fiscal</option>
+        <option>2025</option>
+        <option>2024</option>
+        <option>2023</option>
+        <option>2022</option>
+      </select>
+
+      <label class="sr-only" for="cat">Categoría</label>
+      <select id="cat"
+        class="filter-select rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-card-dark/60 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+        data-filter-category>
+        <option value="">Categoría</option>
+        <option value="renta">Renta</option>
+        <option value="iva">IVA</option>
+        <option value="ica">ICA</option>
+        <option value="pagos">Pagos</option>
+      </select>
+    </div>
+
+    <!-- contador (actualízalo con TS si quieres) -->
+    <div class="md:ml-auto text-xs sm:text-sm text-gray-500" aria-live="polite">
+      4 resultados
+    </div>
+  </form>
+
+  <!-- Lista de formularios -->
+  <div class="forms-list space-y-4" role="list" data-results>
+    <!-- Card 1 -->
+    <article role="listitem"
+      class="form-card bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg shadow-soft p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="grid grid-cols-[4rem,1fr] sm:grid-cols-[5rem,1fr,auto] gap-4 items-center">
+        <div class="icon-area flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-green-50 dark:bg-green-900/20">
+          <span class="material-icons-outlined text-2xl sm:text-3xl text-green-600">open_in_new</span>
+        </div>
+
+        <div class="px-1">
+          <h3 class="text-base sm:text-lg md:text-xl font-semibold">Formulario 210</h3>
+          <p class="text-xs sm:text-sm text-gray-600 mt-1">
+            Declaración de Renta y Complementario Personas Naturales y Asimiladas no Obligadas a llevar Contabilidad.
+          </p>
+        </div>
+
+        <div class="actions sm:text-right sm:justify-self-end w-full sm:w-auto">
+          <div class="flex sm:block items-center justify-between gap-2 mb-2 sm:mb-3">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+              Completado
+            </span>
+          </div>
+          <a routerLink="/items/1024"
+             class="btn btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30">
+            Ver Detalles
+            <span class="material-icons-outlined text-base">east</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 2 -->
+    <article role="listitem"
+      class="form-card bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg shadow-soft p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="grid grid-cols-[4rem,1fr] sm:grid-cols-[5rem,1fr,auto] gap-4 items-center">
+        <div class="icon-area flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+          <span class="material-icons-outlined text-2xl sm:text-3xl text-yellow-700">description</span>
+        </div>
+
+        <div class="px-1">
+          <h3 class="text-base sm:text-lg md:text-xl font-semibold">Formulario 110</h3>
+          <p class="text-xs sm:text-sm text-gray-600 mt-1">
+            Declaración de Renta y Complementario o de Ingresos y Patrimonio para Personas Jurídicas y Asimiladas.
+          </p>
+        </div>
+
+        <div class="actions sm:text-right sm:justify-self-end w-full sm:w-auto">
+          <a routerLink="/items/1023"
+             class="btn btn-secondary inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30">
+            Iniciar
+            <span class="material-icons-outlined text-base">east</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 3 -->
+    <article role="listitem"
+      class="form-card bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg shadow-soft p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="grid grid-cols-[4rem,1fr] sm:grid-cols-[5rem,1fr,auto] gap-4 items-center">
+        <div class="icon-area flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-green-50 dark:bg-green-900/20">
+          <span class="material-icons-outlined text-2xl sm:text-3xl text-green-600">cached</span>
+        </div>
+
+        <div class="px-1">
+          <h3 class="text-base sm:text-lg md:text-xl font-semibold">Formulario 300</h3>
+          <p class="text-xs sm:text-sm text-gray-600 mt-1">
+            Declaración del Impuesto sobre las Ventas (IVA).
+          </p>
+        </div>
+
+        <div class="actions sm:text-right sm:justify-self-end w-full sm:w-auto">
+          <a routerLink="/items/1022"
+             class="btn btn-secondary inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30">
+            Iniciar
+            <span class="material-icons-outlined text-base">east</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 4 -->
+    <article role="listitem"
+      class="form-card bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg shadow-soft p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="grid grid-cols-[4rem,1fr] sm:grid-cols-[5rem,1fr,auto] gap-4 items-center">
+        <div class="icon-area flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+          <span class="material-icons-outlined text-2xl sm:text-3xl text-yellow-700">apartment</span>
+        </div>
+
+        <div class="px-1">
+          <h3 class="text-base sm:text-lg md:text-xl font-semibold">Formulario 490</h3>
+          <p class="text-xs sm:text-sm text-gray-600 mt-1">
+            Recibo Oficial de Pago Impuestos Nacionales.
+          </p>
+        </div>
+
+        <div class="actions sm:text-right sm:justify-self-end w-full sm:w-auto">
+          <div class="flex sm:block items-center justify-between gap-2 mb-2 sm:mb-3">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+              Pagado
+            </span>
+          </div>
+          <a routerLink="/items/1022"
+             class="btn btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30">
+            Ver Recibo
+            <span class="material-icons-outlined text-base">east</span>
+          </a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- vacío / sin resultados (ocúltalo/actívalo con TS) -->
+  <div class="hidden mt-8 text-center text-gray-500" data-empty>
+    No se encontraron formularios con los filtros aplicados.
+  </div>
+</section>

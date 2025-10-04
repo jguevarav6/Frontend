@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #607AFB; }
+      .bank { fill: white; }
+      .text { fill: #0f1724; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 32px; }
+    </style>
+  </defs>
+  <rect rx="32" ry="32" width="256" height="256" class="bg" />
+  <!-- simple bank/building glyph -->
+  <g transform="translate(44,44) scale(0.9)">
+    <rect x="40" y="36" width="80" height="12" class="bank" />
+    <polygon points="0,56 120,56 60,0" class="bank" />
+    <rect x="28" y="68" width="16" height="30" class="bank" />
+    <rect x="52" y="68" width="16" height="30" class="bank" />
+    <rect x="76" y="68" width="16" height="30" class="bank" />
+    <rect x="100" y="68" width="16" height="30" class="bank" />
+  </g>
+  <text x="132" y="150" class="text">TaxAssist</text>
+</svg>

@@ -1,13 +1,46 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Listados</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <app-root></app-root>
-</body>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/" />
+    <title>Dashboard Tributario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+  <!-- Cargar Bootstrap primero para que Tailwind (cargado luego) pueda aplicar utilidades sobre él cuando sea necesario -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="" crossorigin="anonymous">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: { DEFAULT: '#022c43', light: '#044a6f' },
+              secondary: '#ffd700',
+              'background-light': '#f7fafc',
+              'background-dark': '#1a202c',
+              'card-light': '#ffffff',
+              'card-dark': '#2d3748',
+              'text-light': '#4a5568',
+              'text-dark': '#a0aec0',
+              'heading-light': '#1a202c',
+              'heading-dark': '#f7fafc',
+              'border-light': '#e2e8f0',
+              'border-dark': '#4a5568'
+            },
+            fontFamily: { sans: ['Inter', 'sans-serif'] },
+            borderRadius: { DEFAULT: '0.5rem' },
+            boxShadow: { soft: '0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04)' }
+          }
+        }
+      };
+    </script>
+    <style>
+      .material-icons-outlined { font-feature-settings: 'liga'; }
+    </style>
+  </head>
+  <body class="bg-background-light dark:bg-background-dark font-sans">
+    <app-root></app-root>
+  </body>
 </html>

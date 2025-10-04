@@ -1,1 +1,90 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Botón CTA amarillo con mejor contraste (acorde al mockup adjunto) */
+.cta-yellow {
+	background-color: #ffd200; /* cercano al amarillo de la imagen */
+	color: #072b3a; /* texto oscuro para contraste */
+	box-shadow: 0 6px 18px rgba(2,44,67,0.12);
+}
+
+/* Reduce default body margins and set larger base font for accessibility */
+body { margin: 0; font-size: 18px; }
+
+/* Bootstrap se carga via CDN en index.html para permitir que Tailwind (cargado después)
+	sobreescriba utilidades cuando sea necesario. */
+
+/* Asegurar que el body preserve el tamaño base */
+html, body { font-size: 18px; }
+
+/* Tema global y variables accesibles por todos los componentes */
+:root {
+	--bm-primary: #022c43; /* deep blue */
+	--bm-primary-light: #044a6f;
+	--bm-secondary: #ffd700; /* yellow */
+	--background-light: #f7fafc;
+	--card-light: #ffffff;
+	--card-dark: #2d3748;
+	--text-light: #4a5568;
+	--heading: #1a202c;
+	--border-light: #e2e8f0;
+}
+
+/* Layout global: sidebar fijo y espacio reservado para el main */
+/* Sidebar responsive helper */
+.sidebar { width: 220px; position: fixed; left: 0; top: 0; bottom: 0; overflow: auto; z-index: 40; background: var(--card-light); padding: 1rem; border-right: 1px solid var(--border-light); }
+.main-with-sidebar { padding-left: calc(220px + 24px); padding-right: 16px; }
+
+/* Responsive: en pantallas pequeñas el sidebar no debe estar fijo ni superponer el contenido */
+@media (max-width: 1024px) {
+	aside {
+		position: relative;
+		width: auto;
+		height: auto;
+		left: 0;
+		top: 0;
+		z-index: 1;
+	}
+	/* quitar el padding grande para que el main no esté desplazado */
+	main.flex-1 { padding-left: 16px; padding-right: 16px; }
+	/* asegurar que el header y el contenido principal ocupen todo el ancho */
+	.max-w-7xl { margin-left: 0; margin-right: 0; width: auto; }
+}
+
+/* Helpers globales usados por varios componentes */
+.bg-card-light { background: var(--card-light); }
+.shadow-soft { box-shadow: 0 8px 20px rgba(12,24,35,0.06); }
+.action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bm-primary); color: white; border-radius: 10px; font-weight: 800; text-decoration: none; font-size: 16px; }
+
+/* Ensure cards float above the page but below the sidebar when sidebar is fixed */
+.bg-card-light { position: relative; z-index: 20; }
+
+/* summary cards used in items-list */
+.summary-cards {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1rem;
+}
+.summary-card {
+	background: var(--card-light);
+	border-radius: 12px;
+	padding: 1rem;
+	box-shadow: 0 8px 20px rgba(12,24,35,0.06);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	min-height: 160px;
+}
+.summary-card.cta { background: #08263A; color: white; }
+
+@media (min-width: 768px) {
+	.summary-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+	.summary-cards { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Inputs and buttons responsive helpers */
+input, textarea { width: 100%; box-sizing: border-box; }
+.btn, button { min-height: 44px; padding: 10px 14px; }
+.card-actions { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; }
+

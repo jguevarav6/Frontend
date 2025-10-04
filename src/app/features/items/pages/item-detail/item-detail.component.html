@@ -1,0 +1,24 @@
+<h1 class="h3 mb-3">Detalle</h1>
+
+<!-- Loading -->
+<div *ngIf="loading" class="d-flex align-items-center gap-2 mb-3">
+  <div class="spinner-border" role="status" aria-label="Cargando"></div>
+  <span>Cargando…</span>
+</div>
+
+<!-- Bloque: mostrar error y reintentar -->
+<div *ngIf="!loading && error" class="alert alert-danger d-flex justify-content-between align-items-center">
+  <div>{{ error }}</div>
+  <button class="btn btn-sm btn-light" (click)="fetch(item?.id || 1)">Reintentar</button>
+</div>
+
+<!-- Bloque: contenido del detalle (se muestra cuando hay item cargado) -->
+<div *ngIf="!loading && !error && item" class="card">
+  <div class="card-body">
+    <div class="text-muted mb-1">ID: {{ item.id }}</div>
+    <h2 class="h5">{{ item.title }}</h2>
+    <p class="mb-0">{{ item.body }}</p>
+  </div>
+</div>
+
+<a routerLink="/items" class="btn btn-link mt-3 px-0">← Volver al listado</a>

@@ -1,0 +1,75 @@
+:host {
+  display: block;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --bm-primary: #022c43; /* deep blue */
+  --bm-primary-light: #044a6f;
+  --bm-secondary: #ffd700; /* yellow */
+  --background-light: #f7fafc;
+  --card-light: #ffffff;
+  --card-dark: #2d3748;
+  --text-light: #4a5568;
+  --heading: #1a202c;
+  /* aumentar tamaño base para usuarios mayores */
+  font-size: 18px;
+  color: var(--text-light);
+}
+
+/* Sidebar header */
+aside h1 { font-size: 18px; color: var(--bm-primary); margin: 0; }
+aside p { font-size: 13px; color: #55606a; margin: 0; }
+
+/* Container */
+/* Forzar ancho completo pero pegado a la izquierda (sin centrar) */
+.max-w-7xl { max-width: none; margin-left: 12px; margin-right: 0; width: calc(100% - 12px); }
+
+/* Forzar contenido principal: reservar espacio para el sidebar (sidebar fijo) */
+main.flex-1 { padding-left: calc(220px + 24px) !important; padding-right: 16px !important; }
+
+/* Visual helpers */
+.bg-card-light, .bg-card-dark { border-radius: 12px; }
+.shadow-soft { box-shadow: 0 8px 20px rgba(12,24,35,0.06); }
+
+/* Sidebar size and spacing */
+/* Make sidebar fixed so it doesn't overlap main content */
+aside { width: 220px; position: fixed; left: 0; top: 0; bottom: 0; overflow: auto; }
+aside nav a { padding: 14px 12px !important; font-size: 15px; border-radius: 10px; }
+aside nav a.active, aside nav a:hover { background: rgba(2,44,67,0.06); color: var(--bm-primary); }
+
+/* Top cards */
+.grid > .bg-card-light { min-height: 120px; }
+
+/* Table */
+/* Tables: aumentar espaciado y tamaño de texto para legibilidad */
+table.w-full thead th { color: #6b7280; font-size: 13px; letter-spacing: 0.04em; padding: 14px 20px; }
+table.w-full tbody td { padding: 16px 20px; vertical-align: middle; font-size: 15px; }
+table.w-full tbody tr { background: transparent; }
+
+/* Status pill */
+/* Status pill más grande */
+.status-pill { display: inline-flex; align-items: center; gap: 10px; background: #ecfdf5; color: #065f46; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+
+/* Action button */
+.action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bm-primary); color: white; border-radius: 10px; font-weight: 800; text-decoration: none; font-size: 16px; }
+.action-btn:hover { background: var(--bm-primary-light); transform: none; }
+.action-btn:focus { outline: 3px solid rgba(2,44,67,0.16); outline-offset: 2px; }
+
+/* CTA card (right) */
+.cta-card { background: var(--bm-primary); color: white; }
+.cta-card .btn-secondary { background: var(--bm-secondary); color: var(--bm-primary); padding: 8px 14px; border-radius: 8px; font-weight: 700; }
+
+/* Icon smoothing */
+img, .material-icons-outlined { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* Accessibility tweaks */
+/* Heading sizes aumentadas */
+h1.font-heading { font-size: 36px; color: var(--heading); }
+h2.text-2xl { font-size: 22px; }
+.text-sm { font-size: 15px; }
+
+/* Helpers to ensure left layout on nested .max-w-7xl inside component markup */
+.mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
+
+/* Ensure the main content area doesn't center children */
+.max-w-7xl.mx-auto { width: auto !important; }
+
+

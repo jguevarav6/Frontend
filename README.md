@@ -25,3 +25,28 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+## Project notes
+
+- Items are stored in LocalStorage under the key `items_local` for this technical test.
+- The app includes a custom accessible confirm modal and a global loading spinner wired to NgRx.
+
+### Quick commands
+
+Install dependencies:
+
+```powershell
+npm install
+```
+
+Run dev server on port 4300:
+
+```powershell
+npm run start -- --port 4300
+```
+
+Run unit tests:
+
+```powershell
+npm test
+```

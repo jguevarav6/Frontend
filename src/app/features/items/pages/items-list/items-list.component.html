@@ -1,0 +1,89 @@
+<div class="flex min-h-screen bg-[#F7F9FC] dark:bg-background-dark">
+  <!-- Sidebar simple (sin logos) -->
+  <app-items-sidebar></app-items-sidebar>
+
+  <!-- Contenido principal -->
+  <div class="main-with-sidebar" style="width:100%;">
+    <app-dashboard-main>
+  <!-- === TRES TARJETAS EN FILA (responsive) === -->
+  <div class="summary-cards">
+      <!-- Card 1 -->
+  <div class="summary-card">
+        <div class="absolute -top-3 -right-3 size-20 bg-green-100 dark:bg-green-900/30 rounded-full" aria-hidden="true"></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-4">
+            <!-- Punto de color (sin icon fonts) -->
+            <span class="inline-block size-10 rounded-full bg-[#26a269]" aria-hidden="true"></span>
+            <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Declaraciones</p>
+          </div>
+          <p class="mt-4 text-4xl font-bold text-[#1f7a46]">Al día</p>
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">¡Excelente trabajo!</p>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+  <div class="summary-card">
+        <div class="absolute -top-3 -right-3 size-20 bg-blue-100 dark:bg-blue-900/30 rounded-full" aria-hidden="true"></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-4">
+            <span class="inline-block size-10 rounded-full bg-[#2f6df6]" aria-hidden="true"></span>
+            <p class="text-base font-semibold text-gray-700 dark:text-gray-300">Pagos Pendientes</p>
+          </div>
+          <p class="mt-4 text-4xl font-bold text-[#2f6df6] dark:text-secondary">COP 0</p>
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No tienes saldos por pagar.</p>
+        </div>
+      </div>
+
+      <!-- Card 3 (CTA) -->
+  <div class="summary-card cta">
+        <div>
+          <h3 class="text-2xl font-bold">Nueva Declaración</h3>
+          <p class="text-sm md:text-base opacity-90 mt-2">Inicia tu próxima declaración de impuestos aquí.</p>
+        </div>
+        <button type="button" [routerLink]="['/items','declaracion']"
+          class="mt-4 self-start bg-[#FFC107] hover:brightness-110 text-[#08263A] font-semibold py-2 px-5 rounded-lg inline-flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
+          Empezar ahora
+          <!-- Flecha SVG (sin icon fonts) -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M8 5l8 7-8 7" stroke="#08263A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- === RIGHT RAIL (Impuestos Pagados) === -->
+    <div class="right-rail lg:col-span-2">
+      <app-taxes-paid></app-taxes-paid>
+    </div>
+
+    <!-- === ITEMS DINÁMICOS === -->
+    <section class="documents mt-12 lg:col-span-3">
+      <h2 class="font-heading text-2xl font-bold text-text-light dark:text-white mb-6">Items</h2>
+      <ul class="space-y-3">
+        <li *ngFor="let it of filteredItems$ | async; trackBy: trackById" class="p-3 border rounded flex items-start justify-between gap-3">
+          <div class="flex-1">
+            <div *ngIf="editingId !== it.id">
+              <div class="font-semibold">{{ it.title }}</div>
+              <div class="text-sm text-slate-600">{{ it.body }}</div>
+            </div>
+            <div *ngIf="editingId === it.id" class="space-y-2">
+              <input id="edit-title-{{it.id}}" [(ngModel)]="editModel.title" class="w-full rounded border px-3 py-2" />
+              <textarea [(ngModel)]="editModel.body" rows="3" class="w-full rounded border px-3 py-2"></textarea>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <button *ngIf="editingId !== it.id" class="px-3 py-1 text-sm border rounded" (click)="startInlineEdit(it)">Editar</button>
+            <div *ngIf="editingId === it.id" class="flex gap-2">
+              <button class="px-3 py-1 text-sm border rounded" (click)="saveInlineEdit()">Guardar</button>
+              <button class="px-3 py-1 text-sm border rounded" (click)="cancelInlineEdit()">Cancelar</button>
+            </div>
+            <button class="px-3 py-1 text-sm bg-red-600 text-white rounded" (click)="removeLocalItem(it.id)">Eliminar</button>
+          </div>
+        </li>
+      </ul>
+      <div class="mt-4">
+        <button (click)="loadMore()" *ngIf="hasMore" class="px-4 py-2 bg-blue-600 text-white rounded">Cargar más</button>
+      </div>
+    </section>
+  </app-dashboard-main>
+</div>

@@ -3,7 +3,11 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  // URL base para APIs externas usadas en la aplicación. Centralizada aquí
+  // para que pueda sustituirse por entorno (dev/prod) y facilitar mocks en
+  // pruebas unitarias.
+  apiBaseUrl: 'https://jsonplaceholder.typicode.com'
 };
 
 /*

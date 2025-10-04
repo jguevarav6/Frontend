@@ -1,0 +1,26 @@
+/* SCSS Approximation for the "Iniciar Declaración" Button */
+.btn--gold {
+  background-color: var(--brand-gold); /* Custom gold color variable */
+  color: white; /* Or dark text color, depending on contrast */
+  // Inherits other styles like padding, border, etc. from btn-gold-hover
+}
+
+/* SCSS Approximation for the base btn-gold-hover style */
+.btn-gold-hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* gap-2 */
+  padding: 1rem 1.5rem; /* px-6 py-4 */
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 500;
+  transition: all 0.2s ease-in-out; 
+  text-decoration: none;
+  background-color: var(--brand-blue); /* Assuming default is dark blue */
+  color: white;
+
+  &:hover {
+    background-color: var(--brand-gold); /* Custom gold color */
+    color: var(--brand-blue); /* Change text on hover, if desired */
+  }
+}

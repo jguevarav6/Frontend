@@ -2,13 +2,8 @@
 
 Aplicación SPA con Angular 12 + NGRX para la gestión de declaraciones y documentos fiscales. Incluye autenticación con verificación de código, roles de usuario y un panel administrativo completo.
 
-🔐 Acceso Demo
-
-Administrador
-Email: admin@test.com | Password: admin123
-
-Usuario
-Email: user@test.com | Password: user123
+🔐 Acceso 
+Cuando te pida el código aplasta F12 -> click en consola  y visualiza el código y listo ya puedes acceder!
 
 El login incluye verificación 2FA (código en consola del navegador).
 

@@ -1,137 +1,182 @@
 <aside
   [class.collapsed]="collapsed"
-  class="sticky top-0
-         h-auto lg:h-[100svh]
-         w-full lg:w-72 min-w-full lg:min-w-72 flex-none
-         lg:overflow-y-auto
-         flex flex-col
-         bg-white/95 dark:bg-background-dark/80 backdrop-blur-sm
-         p-4 sm:p-5 lg:p-6
-         border-b lg:border-b-0 lg:border-r
-         border-subtle-light dark:border-subtle-dark">
+  class="sidebar-container">
 
-  <!-- Header: logo (imagen) + nombre debajo -->
-  <div class="p-1 sm:p-2 mb-6 lg:mb-8">
-    <!-- Collapse toggle (visible on small screens and as small icon on desktop) -->
-    <button aria-label="Toggle sidebar" class="sidebar-toggle mb-3 lg:mb-4" (click)="toggle()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M4 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+  <!-- Header: logo + nombre -->
+  <div class="sidebar-header">
+    <!-- Collapse toggle -->
+    <button 
+      aria-label="Toggle sidebar" 
+      class="sidebar-toggle" 
+      (click)="toggle()"
+      [class.rotate]="!collapsed">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
-    <div class="flex flex-col items-center text-center max-w-[14rem] mx-auto">
-      <!-- LOGO limpio, responsive -->
-      <img
-        src="assets/logo.png"
-        alt="BELTRÁN MARTÍNEZ &amp; ASOCIADOS — Impuestos y Contabilidad"
-        class="h-16 sm:h-20 w-auto rounded-xl object-contain ring-1 ring-black/5 shadow-sm"
-        decoding="async"
-        fetchpriority="high"
-      />
 
-      <!-- Nombre debajo -->
-      <h1
-        class="mt-3 leading-snug font-semibold text-primary
-               text-[14px] sm:text-[15px]
-               whitespace-normal break-words text-center">
-        BELTRÁN MARTÍNEZ &amp; ASOCIADOS
-      </h1>
-      <p class="text-[11px] sm:text-[12px] text-gray-500 mt-1">Asesoría fiscal y contable</p>
+    <!-- Logo siempre visible -->
+    <div class="logo-container">
+      <div class="logo-wrapper">
+        <img
+          src="assets/logo.png"
+          alt="BM Logo"
+          class="logo-img"
+          decoding="async"
+          fetchpriority="high"
+          (error)="onLogoError($event)"
+        />
+        <!-- Fallback si falla la imagen -->
+        <div class="logo-text" *ngIf="logoLoadError">BM</div>
+      </div>
+
+      <!-- Nombre de la empresa (solo cuando NO está colapsado) -->
+      <div class="company-info" *ngIf="!collapsed">
+        <h1 class="company-name">
+          BELTRÁN MARTÍNEZ<br/>&amp; ASOCIADOS
+        </h1>
+        <p class="company-subtitle">Asesoría fiscal y contable</p>
+      </div>
     </div>
   </div>
 
   <!-- Navegación -->
-  <nav class="flex flex-col gap-2">
+  <nav class="sidebar-nav" *ngIf="!collapsed">
     <a
-      class="group flex items-center gap-3 rounded-lg px-4 py-3 sm:py-3.5 font-medium
-             bg-primary/10 dark:bg-primary/20 text-primary dark:text-secondary"
-      href="#"
+      routerLink="/items"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{exact: true}"
+      class="nav-item"
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="shrink-0" aria-hidden="true">
-        <rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.75" />
-        <rect x="13" y="3" width="8" height="5" rx="2" stroke="currentColor" stroke-width="1.75" />
-        <rect x="13" y="10" width="8" height="11" rx="2" stroke="currentColor" stroke-width="1.75" />
-        <rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.75" />
-      </svg>
-      <span class="text-sm sm:text-base">Panel Principal</span>
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+      <span class="nav-text">Panel Principal</span>
+      <div class="nav-indicator"></div>
     </a>
 
     <a
-      class="group flex items-center gap-3 rounded-lg px-4 py-3 sm:py-3.5 font-medium
-             text-gray-700 dark:text-gray-300 hover:bg-primary/5 dark:hover:bg-primary/10
-             hover:text-primary dark:hover:text-secondary transition-colors"
-      href="#"
+      routerLink="/items/declaracion"
+      routerLinkActive="active"
+      class="nav-item"
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="shrink-0" aria-hidden="true">
-        <path
-          d="M3 17.25V21h3.75L18.8 8.95a1.5 1.5 0 000-2.12l-2.63-2.63a1.5 1.5 0 00-2.12 0L3 17.25z"
-          stroke="currentColor"
-          stroke-width="1.75"
-          fill="none"
-        />
-      </svg>
-      <span class="text-sm sm:text-base">Declaraciones</span>
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <span class="nav-text">Declaraciones</span>
+      <div class="nav-indicator"></div>
     </a>
 
     <a
-      class="group flex items-center gap-3 rounded-lg px-4 py-3 sm:py-3.5 font-medium
-             text-gray-700 dark:text-gray-300 hover:bg-primary/5 dark:hover:bg-primary/10
-             hover:text-primary dark:hover:text-secondary transition-colors"
-      href="#"
+      routerLink="/items/justificacion"
+      routerLinkActive="active"
+      class="nav-item"
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="shrink-0" aria-hidden="true">
-        <rect x="3" y="6" width="18" height="12" rx="2.5" stroke="currentColor" stroke-width="1.75" />
-        <rect x="6" y="11" width="8" height="2" rx="1" fill="currentColor" />
-      </svg>
-      <span class="text-sm sm:text-base">Pagos</span>
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <span class="nav-text">Justificación</span>
+      <div class="nav-indicator"></div>
     </a>
 
     <a
-      class="group flex items-center gap-3 rounded-lg px-4 py-3 sm:py-3.5 font-medium
-             text-gray-700 dark:text-gray-300 hover:bg-primary/5 dark:hover:bg-primary/10
-             hover:text-primary dark:hover:text-secondary transition-colors"
-      href="#"
+      (click)="onComingSoon('Pagos')"
+      class="nav-item"
+      style="cursor: pointer;"
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="shrink-0" aria-hidden="true">
-        <path
-          d="M3 7.5A2.5 2.5 0 015.5 5H9l2 2h7.5A2.5 2.5 0 0121 9.5V18a3 3 0 01-3 3H6a3 3 0 01-3-3V7.5z"
-          stroke="currentColor"
-          stroke-width="1.75"
-          fill="none"
-        />
-      </svg>
-      <span class="text-sm sm:text-base">Mis Documentos</span>
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+      </div>
+      <span class="nav-text">Pagos</span>
+      <div class="nav-indicator"></div>
     </a>
+
+    <a
+      (click)="onComingSoon('Mis Documentos')"
+      class="nav-item"
+      style="cursor: pointer;"
+    >
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <span class="nav-text">Mis Documentos</span>
+      <div class="nav-indicator"></div>
+    </a>
+
+    <!-- Divider -->
+    <div class="nav-divider"></div>
   </nav>
 
-  <!-- TaxHelp -->
-  <div class="mt-auto pt-6 lg:pt-8">
-    <div class="rounded-xl p-5 sm:p-6 text-center border border-subtle-light dark:border-subtle-dark">
-      <h3 class="font-heading font-bold text-accent text-base sm:text-lg mb-2">TaxHelp</h3>
-      <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
-        ¿Necesitas asistencia? Estamos aquí para guiarte.
-      </p>
-
-      <a
-        href="https://bmasociados.co/"
-        target="_blank"
-        rel="noopener"
-        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg
-               bg-blue-600 text-white font-semibold hover:brightness-110"
-      >
-        <span>Contáctenos</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M8 5l8 7-8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- User Info & Logout -->
+  <div class="user-section" *ngIf="!collapsed">
+    <div class="user-info">
+      <div class="user-avatar">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
         </svg>
-      </a>
+      </div>
+      <div class="user-details">
+        <p class="user-name">{{ currentUser?.name || 'Usuario' }}</p>
+        <p class="user-role">{{ currentUser?.role === 'admin' ? 'Administrador' : 'Usuario' }}</p>
+      </div>
     </div>
+    <button class="logout-button" (click)="onLogout()" title="Cerrar sesión">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span>Salir</span>
+    </button>
   </div>
+
+  <!-- TaxHelp Card -->
+  <div class="taxhelp-card" *ngIf="!collapsed">
+    <div class="taxhelp-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+    <h3 class="taxhelp-title">¿Necesitas ayuda?</h3>
+    <p class="taxhelp-text">Estamos aquí para guiarte en cada paso</p>
+    <a
+      href="https://bmasociados.co/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="taxhelp-button"
+    >
+      <span>Contáctanos</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+  </div>
+
 </aside>
 
-<!-- Fixed handle shown only when sidebar is collapsed to reopen it -->
-<button *ngIf="collapsed" aria-label="Open sidebar" class="sidebar-handle" (click)="toggle()">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M20 12H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M14 6H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
-  </svg>
-</button>
+<!-- Overlay for mobile -->
+<div class="sidebar-overlay" *ngIf="!collapsed" (click)="toggle()"></div>

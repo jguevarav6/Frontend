@@ -1,0 +1,377 @@
+﻿diff --git a/src/app/features/items/data-access/items.service.ts b/src/app/features/items/data-access/items.service.ts
+index d539255..a15c5ad 100644
+--- a/src/app/features/items/data-access/items.service.ts
++++ b/src/app/features/items/data-access/items.service.ts
+@@ -1,134 +1,276 @@
+-// src/app/features/items/data-access/items.service.ts
+-import { Injectable } from '@angular/core';
+-import { HttpClient, HttpParams } from '@angular/common/http';
++/**// src/app/features/items/data-access/items.service.ts
++
++ * Servicio de gesti├│n de Itemsimport { Injectable } from '@angular/core';
++
++ * Maneja operaciones CRUD en localStorage y consumo de API RESTimport { HttpClient, HttpParams } from '@angular/common/http';
++
++ */import { Observable } from 'rxjs';
++
++import { Injectable } from '@angular/core';import { map } from 'rxjs/operators';
++
++import { HttpClient, HttpParams } from '@angular/common/http';import { environment } from '../../../../environments/environment';
++
+ import { Observable } from 'rxjs';
+-import { map } from 'rxjs/operators';
+-import { environment } from '../../../../environments/environment';
+-
+-/**
+- * Interfaz que representa la estructura m├¡nima de un "Item" (post)
+- * que retorna la API (id, t├¡tulo y cuerpo).
+- */
+-export interface Item {
+-  id: number;
+-  title: string;
+-  body: string;
++
++import { map } from 'rxjs/operators';/**
++
++import { environment } from '../../../../environments/environment'; * Interfaz que representa un Item (post de la API o registro local)
++
++ * Incluye campos b├ísicos + funcionalidades adicionales como favoritos
++
++export interface Item { */
++
++  id: number;export interface Item {
++
++  title: string;  id: number;
++
++  body: string;  title: string;
++
++  isFavorite?: boolean;  body: string;
++
++}  isFavorite?: boolean;
++
+ }
+ 
+ @Injectable({ providedIn: 'root' })
+-export class ItemsService {
+-  /** 
+- * Lee del LocalStorage la lista guardada (si existe), si no existe devuelve [].
+- */
+-  private readLocalItems(): Item[]{
+-    try {
+-      const raw = localStorage.getItem('items_local');
+-      return raw ? JSON.parse(raw) as Item []: [];
+-
+-    }catch{
+-      return [];
++
++export class ItemsService {@Injectable({ providedIn: 'root' })
++
++  private readonly baseUrl = environment.apiBaseUrl;export class ItemsService {
++
++  private readonly baseUrl = environment.apiBaseUrl;
++
++  constructor(private http: HttpClient) {}
++
++  constructor(private http: HttpClient) {}
++
++  // ==================== LOCALSTORAGE ====================
++
++  /**
++
++  private readLocalItems(): Item[] {   * Lee items guardados en localStorage
++
++    try {   */
++
++      const raw = localStorage.getItem('items_local');  private readLocalItems(): Item[] {
++
++      return raw ? JSON.parse(raw) as Item[] : [];    try {
++
++    } catch {      const raw = localStorage.getItem('items_local');
++
++      return [];      return raw ? JSON.parse(raw) as Item[] : [];
++
++    }    } catch {
++
++  }      return [];
++
+     }
++
++  private saveLocalItems(items: Item[]): void {  }
++
++    localStorage.setItem('items_local', JSON.stringify(items));  }
++
+   }
+ 
+   /**
+- * Guarda en LocalStorage la lista completa.
+- */
+-private saveLocalItems(items:Item[]) {
+-  localStorage.setItem('items_local', JSON.stringify(items));
+-}
+ 
+-/**
+- * createItem - crea un item localmente y lo persiste.
+- * Devuelve el item creado.
+- */
++  createItem(payload: Partial<Item>): Item { * Guarda en LocalStorage la lista completa.
++
++    const current = this.readLocalItems(); */
++
++    const maxId = current.length ? Math.max(...current.map(i => i.id)) : 0;private saveLocalItems(items:Item[]) {
++
++    const newItem: Item = {  localStorage.setItem('items_local', JSON.stringify(items));
++
++      id: maxId + 1,}
++
++      title: payload.title || '',
++
++      body: payload.body || ''/**
++
++    }; * createItem - crea un item localmente y lo persiste.
+ 
++    const updated = [...current, newItem]; * Devuelve el item creado.
++
++    this.saveLocalItems(updated); */
++
++    return newItem;
++
++  }
+ 
+ // Usar la variable del environment para la URL base de la API, de modo que
+-createItem( payload: Partial<Item>): Item {
+-  const current = this.readLocalItems();
+-  //Generar un id nuevo (simplemente +1 del mayor id actual)
+-  const maxId= current.length ? Math.max(...current.map(i=>i.id)):0;
+-  const newItem: Item = {
+-    id: maxId +1,
+-    title: payload.title || '',
+-    body: payload.body || ''
+-  };
+-  const updated = [...current, newItem];
+-  this.saveLocalItems(updated);
+-  return newItem;
+-}
+ 
++  updateItem(id: number, changes: Partial<Item>): Item | null {createItem( payload: Partial<Item>): Item {
++
++    const current = this.readLocalItems();  const current = this.readLocalItems();
++
++    let updated: Item | null = null;  //Generar un id nuevo (simplemente +1 del mayor id actual)
++
++    const next = current.map(it => {  const maxId= current.length ? Math.max(...current.map(i=>i.id)):0;
++
++      if (it.id === id) {  const newItem: Item = {
++
++        updated = { ...it, ...changes };    id: maxId +1,
++
++        return updated;    title: payload.title || '',
++
++      }    body: payload.body || ''
++
++      return it;  };
++
++    });  const updated = [...current, newItem];
++
++    if (updated) this.saveLocalItems(next);  this.saveLocalItems(updated);
++
++    return updated;  return newItem;
++
++  }}
++
++
++
++  deleteItem(id: number): boolean {
++
++    const current = this.readLocalItems();updateItem(id: number, changes: Partial<Item>): Item | null {
++
++    const next = current.filter(it => it.id !== id);  const current = this.readLocalItems();
++
++    const removed = next.length !== current.length;  let updated: Item | null = null;
++
++    if (removed) {  const next = current.map(it => {
++
++      this.saveLocalItems(next);    if (it.id === id) {
++
++    }      updated = { ...it, ...changes };
++
++    return removed;      return updated;
++
++  }    }
+ 
+-updateItem(id: number, changes: Partial<Item>): Item | null {
+-  const current = this.readLocalItems();
+-  let updated: Item | null = null;
+-  const next = current.map(it => {
+-    if (it.id === id) {
+-      updated = { ...it, ...changes };
+-      return updated;
+-    }
+     return it;
+-  });
+-  if (updated) this.saveLocalItems(next);
+-  return updated;
++
++  getLocalItems(): Item[] {  });
++
++    return this.readLocalItems();  if (updated) this.saveLocalItems(next);
++
++  }  return updated;
++
+ }
+-  deleteItem(id: number):boolean {
+-    const current = this.readLocalItems();
+-    const next = current.filter(it => it.id !==id);
++
++  getLocalItem(id: number): Item | undefined {  deleteItem(id: number):boolean {
++
++    return this.readLocalItems().find(i => i.id === id);    const current = this.readLocalItems();
++
++  }    const next = current.filter(it => it.id !==id);
++
+     const removed = next.length !== current.length;
+-    if(removed){ this.saveLocalItems(next);}
+-    return removed;
+ 
+-  }
++  /**    if(removed){ this.saveLocalItems(next);}
+ 
+-  /**
+-   * getLocalItems
+-   * Devuelve el arreglo de items almacenados en LocalStorage (sincr├│nico).
+-   */
+-  getLocalItems(): Item[] {
+-    return this.readLocalItems();
+-  }
++   * Sincroniza items de la API con localStorage    return removed;
+ 
+-  /**
+-   * getLocalItem
+-   * Busca un item local por id y lo devuelve o undefined si no existe.
+-   */
+-  getLocalItem(id: number): Item | undefined {
+-    return this.readLocalItems().find(i => i.id === id);
+-  }
++   * Elimina duplicados manteniendo el m├ís reciente
+ 
++   */  }
+ 
++  syncItemsToLocal(items: Item[], append: boolean = false): void {
+ 
++    try {  /**
+ 
++      const current = append ? this.readLocalItems() : [];   * getLocalItems
+ 
++      const merged = append ? [...current, ...items] : items;   * Devuelve el arreglo de items almacenados en LocalStorage (sincr├│nico).
+ 
++         */
+ 
++      const unique = merged.reduce((acc, item) => {  getLocalItems(): Item[] {
++
++        acc[item.id] = item;    return this.readLocalItems();
++
++        return acc;  }
++
++      }, {} as { [key: number]: Item });
++
++        /**
++
++      const uniqueItems = Object.values(unique);   * getLocalItem
++
++      this.saveLocalItems(uniqueItems);   * Busca un item local por id y lo devuelve o undefined si no existe.
++
++    } catch (e) {   */
++
++      console.error('[ItemsService] Error en syncItemsToLocal:', e);  getLocalItem(id: number): Item | undefined {
++
++    }    return this.readLocalItems().find(i => i.id === id);
++
++  }  }
++
++
++
++  // ==================== API REST ====================
+ 
+-  // pueda cambiarse seg├║n el build (dev/prod) y sea m├ís f├ícil mockear en
+-  // pruebas.
+-  private readonly baseUrl = environment.apiBaseUrl;
+ 
+-  constructor(private http: HttpClient) {}
+ 
+-  /**
+-   * getItems
+-   * Obtiene un arreglo de items desde la API p├║blica.
+-   * Opcionalmente acepta:
+-   * - query: texto de b├║squeda (se a├▒ade como par├ímetro 'q')
+-   * - page: n├║mero de p├ígina (se a├▒ade como '_page')
+-   * - limit: tama├▒o de p├ígina (se a├▒ade como '_limit')
+-   *
+-   * Devuelve un Observable con la lista de items. La paginaci├│n se
+-   * apoya en los par├ímetros que expone jsonplaceholder.
+-   */
+   getItems(opts?: { query?: string; page?: number; limit?: number }): Observable<Item[]> {
++
+     let params = new HttpParams();
++
+     if (opts?.query) params = params.set('q', opts.query);
+-    if (opts?.page)  params = params.set('_page', String(opts.page));
++
++    if (opts?.page) params = params.set('_page', String(opts.page));
++
+     if (opts?.limit) params = params.set('_limit', String(opts.limit));
+ 
+-    return this.http.get<Item[]>(`${this.baseUrl}/posts`, { params });
+-  }
++  // pueda cambiarse seg├║n el build (dev/prod) y sea m├ís f├ícil mockear en
++
++    return this.http.get<Item[]>(`${this.baseUrl}/posts`, { params });  // pruebas.
++
++  }  private readonly baseUrl = environment.apiBaseUrl;
++
++
++
++  getItemsWithTotal(opts?: { query?: string; page?: number; limit?: number }): Observable<{ items: Item[]; total: number | null }> {  constructor(private http: HttpClient) {}
++
++    let params = new HttpParams();
++
++    if (opts?.query) params = params.set('q', opts.query);  /**
++
++    if (opts?.page) params = params.set('_page', String(opts.page));   * getItems
++
++    if (opts?.limit) params = params.set('_limit', String(opts.limit));   * Obtiene un arreglo de items desde la API p├║blica.
++
++   * Opcionalmente acepta:
++
++    return this.http   * - query: texto de b├║squeda (se a├▒ade como par├ímetro 'q')
++
++      .get<Item[]>(`${this.baseUrl}/posts`, { params, observe: 'response' })   * - page: n├║mero de p├ígina (se a├▒ade como '_page')
++
++      .pipe(   * - limit: tama├▒o de p├ígina (se a├▒ade como '_limit')
++
++        map((resp: any) => {   *
++
++          const items: Item[] = resp.body || [];   * Devuelve un Observable con la lista de items. La paginaci├│n se
++
++          const totalHeader = resp.headers ? resp.headers.get('X-Total-Count') || resp.headers.get('x-total-count') : null;   * apoya en los par├ímetros que expone jsonplaceholder.
++
++          const total = totalHeader ? parseInt(totalHeader, 10) : null;   */
++
++          return { items, total };  getItems(opts?: { query?: string; page?: number; limit?: number }): Observable<Item[]> {
++
++        })    let params = new HttpParams();
++
++      );    if (opts?.query) params = params.set('q', opts.query);
++
++  }    if (opts?.page)  params = params.set('_page', String(opts.page));
++
++    if (opts?.limit) params = params.set('_limit', String(opts.limit));
++
++  getItem(id: number): Observable<Item> {
++
++    return this.http.get<Item>(`${this.baseUrl}/posts/${id}`);    return this.http.get<Item[]>(`${this.baseUrl}/posts`, { params });
++
++  }  }
++
++}
+ 
+   /**
+    * getItemsWithTotal

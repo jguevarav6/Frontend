@@ -1,34 +1,54 @@
-<main class="flex-1 colombian-coffee-bg px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
-  <div class="mx-auto w-full max-w-7xl flex flex-col gap-8 sm:gap-10 lg:gap-12">
-    <!-- Header -->
-    <header class="mb-1 sm:mb-2">
-      <h1 class="font-heading font-bold text-2xl sm:text-3xl lg:text-4xl text-text-light dark:text-white">
-        Hola de nuevo, Elena
-      </h1>
-      <p class="mt-2 text-base sm:text-lg text-gray-600 dark:text-gray-400">
-        Bienvenida a TaxAssist. Aquí tienes un resumen de tu situación fiscal.
-      </p>
+<main class="dashboard-main">
+  <div class="dashboard-container">
+    <!-- Header con animación -->
+    <header class="dashboard-header animate-fade-in">
+      <div class="welcome-section">
+        <div class="greeting-wrapper">
+          <h1 class="greeting-title">
+            <span class="wave-emoji">👋</span>
+            Hola de nuevo, {{ getUserName() }}
+          </h1>
+          <div class="greeting-underline"></div>
+        </div>
+        <p class="greeting-subtitle">
+          Bienvenid@ a TaxAssist. Aquí tienes un resumen de tu situación fiscal.
+        </p>
+      </div>
+      
+      <!-- Indicador de última actualización -->
+      <div class="update-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="clock-icon">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <span>Actualizado hace un momento</span>
+      </div>
     </header>
 
-    <!-- Main grid -->
-    <section class="grid grid-cols-1 gap-6 sm:gap-8 lg:gap-8 items-start lg:grid-cols-5">
+    <!-- Main grid con animaciones escalonadas -->
+    <section class="dashboard-grid">
       <!-- Columna izquierda (3) -->
-      <div class="flex flex-col gap-6 sm:gap-8 lg:col-span-3">
-        <h2 id="resumen-heading" class="font-heading text-xl sm:text-2xl font-bold text-text-light dark:text-white">
+      <div class="left-column">
+        <h2 class="section-title animate-slide-in-left">
+          <span class="title-icon">📊</span>
           Resumen General
         </h2>
 
-        <!-- Mantengo tu proyección de contenido -->
-        <ng-content select=".summary-cards"></ng-content>
+        <!-- Contenido proyectado con animación -->
+        <div class="animate-slide-in-left animation-delay-1">
+          <ng-content select=".summary-cards"></ng-content>
+        </div>
       </div>
 
       <!-- Columna derecha (2) -->
-      <div class="lg:col-span-2">
+      <div class="right-column animate-slide-in-right">
         <ng-content select=".right-rail"></ng-content>
       </div>
     </section>
 
-    <!-- Contenido inferior (tabla de documentos) -->
-    <ng-content select="section.documents"></ng-content>
+    <!-- Contenido inferior con animación -->
+    <div class="animate-fade-in-up animation-delay-2">
+      <ng-content select="section.documents"></ng-content>
+    </div>
   </div>
 </main>

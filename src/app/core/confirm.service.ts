@@ -6,27 +6,48 @@ export interface ConfirmOptions { title?: string; message: string; confirmText?:
 // Payload sent to the component includes the options and the opener element
 export interface ConfirmRequest { opts: ConfirmOptions | null; opener?: Element | null }
 
+// Result payload
+export interface ConfirmResult { confirmed: boolean }
+
 @Injectable({ providedIn: 'root' })
 export class ConfirmService {
-  private subject = new Subject<ConfirmRequest>();
+  private requestSubject = new Subject<ConfirmRequest>();
+  private resultSubject = new Subject<ConfirmResult>();
 
   // Observable that modal component subscribes to show options
-  onRequest(): Observable<ConfirmRequest> { return this.subject.asObservable(); }
+  onRequest(): Observable<ConfirmRequest> { return this.requestSubject.asObservable(); }
+
+  // Observable that resolves promises subscribe to
+  onResult(): Observable<ConfirmResult> { return this.resultSubject.asObservable(); }
+
+  // Emit result (called by component)
+  emitResult(confirmed: boolean) {
+    this.resultSubject.next({ confirmed });
+  }
 
   // Show confirm and return a promise that resolves with boolean
   confirmAsync(opts: ConfirmOptions): Promise<boolean> {
+    console.log('[ConfirmService] confirmAsync called with message:', opts.message);
     // capture the currently focused element so we can restore focus after the modal closes
     const opener = (document && document.activeElement) ? document.activeElement as Element : null;
-    this.subject.next({ opts, opener });
+    this.requestSubject.next({ opts, opener });
+    
     return new Promise((resolve) => {
-      const handler = (ev: any) => {
-        window.removeEventListener('app-confirm-result', handler as any);
-        resolve(ev?.detail?.confirmed === true);
-      };
-      window.addEventListener('app-confirm-result', handler as any);
+      const subscription = this.resultSubject.subscribe((result) => {
+        console.log('[ConfirmService] result received:', result);
+        subscription.unsubscribe();
+        resolve(result.confirmed === true);
+      });
+      
+      // Timeout fallback after 30 seconds
+      setTimeout(() => {
+        subscription.unsubscribe();
+        console.log('[ConfirmService] timeout - resolving false');
+        resolve(false);
+      }, 30000);
     });
   }
 
   // Programmatically clear modal
-  clear() { this.subject.next({ opts: null, opener: null }); }
+  clear() { this.requestSubject.next({ opts: null, opener: null }); }
 }

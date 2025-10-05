@@ -1,52 +1,77 @@
-# Listados
+📊 Sistema de Gestión de Impuestos
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.18.
+Aplicación SPA con Angular 12 + NGRX para la gestión de declaraciones y documentos fiscales. Incluye autenticación con verificación de código, roles de usuario y un panel administrativo completo.
 
-## Development server
+🔐 Acceso Demo
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Administrador
+Email: admin@test.com | Password: admin123
 
-## Code scaffolding
+Usuario
+Email: user@test.com | Password: user123
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+El login incluye verificación 2FA (código en consola del navegador).
 
-## Build
+✨ Funcionalidades
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Autenticación con 2FA y roles
 
-## Running unit tests
+CRUD de declaraciones de impuestos
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Estado global con NGRX Store + Effects
 
-## Running end-to-end tests
+Persistencia en localStorage + API REST
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+Filtros, búsqueda, orden dinámico y favoritos
 
-## Further help
+Exportación a PDF y CSV
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+Dashboard visual y responsive design (con Dark Mode)
 
-## Project notes
+🛠️ Tecnologías
 
-- Items are stored in LocalStorage under the key `items_local` for this technical test.
-- The app includes a custom accessible confirm modal and a global loading spinner wired to NgRx.
+Angular 12.2.18
 
-### Quick commands
+TypeScript 4.3.5
 
-Install dependencies:
+NGRX Store / Effects 12.5.1
 
-```powershell
+RxJS 6.6.0
+
+PrimeNG 12.2.17
+
+jsPDF + autotable
+
+DEPENDENCIAS 
+📂 Listado completo de dependencias:
+➡️ DEPENDENCIAS.txt
+
+🚀 Instalación
+# Clonar repositorio
+git clone https://github.com/jguevarav6/Frontend.git
+cd Frontend
+
+# Instalar dependencias
 npm install
-```
 
-Run dev server on port 4300:
+# Ejecutar en modo desarrollo
+ng serve
 
-```powershell
-npm run start -- --port 4300
-```
 
-Run unit tests:
+Aplicación disponible en: http://localhost:4200
 
-```powershell
+🧪 Tests
 npm test
-```
+ng test --code-coverage
+
+
+Incluye pruebas para servicios, reducers y componentes principales.
+
+👨‍💻 Autor
+
+Santiago Guevara
+GitHub: @jguevarav6
+
+📄 Licencia
+
+Proyecto desarrollado como prueba técnica para Desarrollador Frontend Junior.

@@ -26,6 +26,7 @@ export function persistItemsMetaReducer(reducer: ActionReducer<any>): ActionRedu
           items: nextState.items.items,
           total: nextState.items.total,
           selectedId: nextState.items.selectedId,
+          filters: nextState.items.filters,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
       }

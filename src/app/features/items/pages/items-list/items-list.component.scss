@@ -14,6 +14,97 @@
   color: var(--text-light);
 }
 
+.items-list-page {
+  background: #F7F9FC;
+  min-height: 100%;
+
+  @media (prefers-color-scheme: dark) {
+    background: #0f172a;
+  }
+}
+
+/* ===== SUMMARY CARDS CON ANIMACIONES ===== */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.summary-card {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.6s ease-out;
+  animation-fill-mode: both;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+
+    .absolute {
+      transform: scale(1.2) rotate(10deg);
+    }
+  }
+
+  .absolute {
+    transition: transform 0.4s ease;
+  }
+
+  &.cta {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    h3,
+    p {
+      color: white;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    &:hover {
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Sidebar header */
 aside h1 { font-size: 18px; color: var(--bm-primary); margin: 0; }
 aside p { font-size: 13px; color: #55606a; margin: 0; }
@@ -30,7 +121,6 @@ main.flex-1 { padding-left: calc(220px + 24px) !important; padding-right: 16px !
 .shadow-soft { box-shadow: 0 8px 20px rgba(12,24,35,0.06); }
 
 /* Sidebar size and spacing */
-/* Make sidebar fixed so it doesn't overlap main content */
 aside { width: 220px; position: fixed; left: 0; top: 0; bottom: 0; overflow: auto; }
 aside nav a { padding: 14px 12px !important; font-size: 15px; border-radius: 10px; }
 aside nav a.active, aside nav a:hover { background: rgba(2,44,67,0.06); color: var(--bm-primary); }
@@ -39,13 +129,11 @@ aside nav a.active, aside nav a:hover { background: rgba(2,44,67,0.06); color: v
 .grid > .bg-card-light { min-height: 120px; }
 
 /* Table */
-/* Tables: aumentar espaciado y tamaño de texto para legibilidad */
 table.w-full thead th { color: #6b7280; font-size: 13px; letter-spacing: 0.04em; padding: 14px 20px; }
 table.w-full tbody td { padding: 16px 20px; vertical-align: middle; font-size: 15px; }
 table.w-full tbody tr { background: transparent; }
 
 /* Status pill */
-/* Status pill más grande */
 .status-pill { display: inline-flex; align-items: center; gap: 10px; background: #ecfdf5; color: #065f46; padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
 
 /* Action button */
@@ -61,15 +149,10 @@ table.w-full tbody tr { background: transparent; }
 img, .material-icons-outlined { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 /* Accessibility tweaks */
-/* Heading sizes aumentadas */
 h1.font-heading { font-size: 36px; color: var(--heading); }
 h2.text-2xl { font-size: 22px; }
 .text-sm { font-size: 15px; }
 
-/* Helpers to ensure left layout on nested .max-w-7xl inside component markup */
+/* Helpers */
 .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
-
-/* Ensure the main content area doesn't center children */
 .max-w-7xl.mx-auto { width: auto !important; }
-
-

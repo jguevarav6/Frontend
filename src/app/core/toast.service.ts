@@ -9,7 +9,7 @@ export class ToastService {
 
   onToast(): Observable<ToastMessage> { return this.subject.asObservable(); }
 
-  show(msg: string, type: 'success'|'error'|'info' = 'success', duration = 3500) {
+  show(msg: string, type: 'success'|'error'|'info' = 'success', duration = 2500) {
     this.subject.next({ text: msg, type, duration });
   }
 }

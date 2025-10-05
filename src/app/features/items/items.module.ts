@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 
 import { ItemsRoutingModule } from './items-routing.module';
 import { ItemsComponent } from './items.component';
-import { ItemsListComponent } from './pages/items-list/items-list.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
+import { PageLayoutComponent } from './components/page-layout/page-layout.component';
+import { ItemsListComponent } from './pages/items-list/items-list.component';
 import { DashboardMainComponent } from './components/dashboard-main/dashboard-main.component';
 import { DocumentsTableComponent } from './components/documents-table/documents-table.component';
 import { TaxesPaidComponent } from './components/taxes-paid/taxes-paid.component';
@@ -16,11 +17,12 @@ import { JustificacionComponent } from './pages/justificacion/justificacion.comp
 
 @NgModule({
   declarations: [
-    ItemsComponent,
-    ItemsListComponent,
-    ItemDetailComponent
-    ,SidebarComponent,
-    DashboardMainComponent,
+  ItemsComponent,
+  ItemsListComponent,
+  ItemDetailComponent
+    ,SidebarComponent
+    ,PageLayoutComponent
+    ,DashboardMainComponent,
     DocumentsTableComponent,
     TaxesPaidComponent
     ,ItemFormComponent

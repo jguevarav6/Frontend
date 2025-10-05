@@ -1,0 +1,53 @@
+/* 
+ * =================================================================
+ * CONFIGURACIÓN DE EMAILJS PARA: pedroguevarap50@gmail.com
+ * =================================================================
+ * 
+ * INSTRUCCIONES:
+ * 
+ * 1. Crea cuenta en: https://www.emailjs.com/
+ *    - Usa: pedroguevarap50@gmail.com
+ * 
+ * 2. Conecta Gmail en "Email Services"
+ *    - Copia el SERVICE_ID
+ * 
+ * 3. Crea template en "Email Templates"
+ *    - Copia el TEMPLATE_ID
+ * 
+ * 4. Ve a "Account" → "General"
+ *    - Copia la PUBLIC_KEY
+ * 
+ * 5. REEMPLAZA las líneas 17-19 del archivo:
+ *    src/app/core/email.service.ts
+ * 
+ * =================================================================
+ */
+
+// EJEMPLO DE CÓMO DEBEN VERSE LAS CLAVES CONFIGURADAS:
+
+private readonly PUBLIC_KEY = 'abc123XYZ456';         // Tu Public Key de EmailJS
+private readonly SERVICE_ID = 'service_gmail123';     // Tu Gmail Service ID
+private readonly TEMPLATE_ID = 'template_verify789';  // Tu Template ID
+
+/* 
+ * =================================================================
+ * DESPUÉS DE CONFIGURAR:
+ * =================================================================
+ * 
+ * 1. Los códigos llegarán a: pedroguevarap50@gmail.com
+ * 2. No necesitarás revisar la consola
+ * 3. El email llegará en menos de 5 segundos
+ * 
+ * =================================================================
+ * PARA PROBAR SIN CONFIGURAR (MÉTODO RÁPIDO):
+ * =================================================================
+ * 
+ * 1. Presiona F12 en el navegador
+ * 2. Ve a la pestaña "Console"
+ * 3. Haz login normalmente
+ * 4. Busca: [AUTH] Código de verificación para...
+ * 5. Copia el código de 6 dígitos
+ * 6. Pégalo en el campo que aparece
+ * 
+ * =================================================================
+ */

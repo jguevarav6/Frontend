@@ -1,0 +1,226 @@
+═══════════════════════════════════════════════════════════════════
+  LISTADO COMPLETO DE DEPENDENCIAS DEL PROYECTO
+  Sistema de Gestión de Impuestos - Angular 12
+═══════════════════════════════════════════════════════════════════
+
+📦 DEPENDENCIAS DE PRODUCCIÓN (dependencies)
+────────────────────────────────────────────────────────────────────
+
+FRAMEWORK ANGULAR CORE
+├── @angular/animations@~12.2.0
+│   └── Animaciones y transiciones del framework
+├── @angular/common@~12.2.0
+│   └── Directivas y pipes comunes (ngIf, ngFor, DatePipe, etc.)
+├── @angular/compiler@~12.2.0
+│   └── Compilador de templates
+├── @angular/core@~12.2.0
+│   └── Núcleo del framework Angular
+├── @angular/forms@~12.2.0
+│   └── Formularios reactivos y template-driven
+├── @angular/platform-browser@~12.2.0
+│   └── Plataforma para navegadores web
+├── @angular/platform-browser-dynamic@~12.2.0
+│   └── Compilación dinámica en navegador
+└── @angular/router@~12.2.0
+    └── Sistema de navegación y rutas
+
+GESTIÓN DE ESTADO (NGRX)
+├── @ngrx/effects@^12.5.1
+│   └── Manejo de efectos secundarios (llamadas API, side-effects)
+├── @ngrx/store@^12.5.1
+│   └── Store global de estado (Redux pattern)
+└── @ngrx/store-devtools@^12.5.1
+    └── Herramientas de desarrollo para NGRX (time-travel debugging)
+
+LIBRERÍAS DE UTILIDAD
+├── rxjs@~6.6.0
+│   └── Programación reactiva (Observables, Subjects, Operators)
+├── tslib@^2.3.0
+│   └── Helpers para TypeScript compilado
+└── zone.js@~0.11.4
+    └── Detección de cambios asíncronos de Angular
+
+EXPORTACIÓN DE DOCUMENTOS
+├── jspdf@^2.5.3
+│   └── Generación de archivos PDF en el navegador
+└── jspdf-autotable@^3.8.5
+    └── Plugin para crear tablas automáticas en PDFs
+
+COMPONENTES UI (PRIMENG)
+├── @angular/cdk@^12.2.13
+│   └── Component Dev Kit - Primitivas de comportamiento UI (requerido por PrimeNG)
+├── primeng@^12.2.17
+│   └── Biblioteca de componentes UI ricos (tablas, diálogos, paginadores)
+└── primeicons@^6.0.1
+    └── Iconografía oficial de PrimeNG
+
+COMUNICACIÓN HTTP
+└── @angular/common/http
+    └── Cliente HTTP para consumo de APIs REST
+
+
+📦 DEPENDENCIAS DE DESARROLLO (devDependencies)
+────────────────────────────────────────────────────────────────────
+
+HERRAMIENTAS DE CONSTRUCCIÓN
+├── @angular-devkit/build-angular@~12.2.18
+│   └── Builder oficial de Angular CLI
+├── @angular/cli@~12.2.18
+│   └── CLI de Angular para scaffolding y builds
+└── @angular/compiler-cli@~12.2.0
+    └── Compilador AOT (Ahead-of-Time)
+
+TESTING
+├── @types/jasmine@~3.8.0
+│   └── Tipos TypeScript para Jasmine
+├── jasmine-core@~3.8.0
+│   └── Framework de testing BDD
+├── karma@~6.3.0
+│   └── Test runner para navegadores
+├── karma-chrome-launcher@~3.1.0
+│   └── Launcher de Chrome para Karma
+├── karma-coverage@~2.0.3
+│   └── Cobertura de código en tests
+├── karma-jasmine@~4.0.0
+│   └── Adaptador de Jasmine para Karma
+└── karma-jasmine-html-reporter@~1.7.0
+    └── Reporter HTML para resultados de tests
+
+TYPESCRIPT Y TIPOS
+├── typescript@~4.3.5
+│   └── Compilador de TypeScript
+└── @types/node@^12.11.1
+    └── Tipos TypeScript para Node.js APIs
+
+
+═══════════════════════════════════════════════════════════════════
+  INSTALACIÓN Y USO
+═══════════════════════════════════════════════════════════════════
+
+🚀 INSTALACIÓN COMPLETA
+────────────────────────────────────────────────────────────────────
+
+1. Instalar todas las dependencias automáticamente:
+
+   npm install
+
+   Esto lee package.json e instala:
+   - Todas las dependencies (producción)
+   - Todas las devDependencies (desarrollo)
+
+
+2. Instalar solo dependencias de producción:
+
+   npm install --production
+
+   Solo instala 'dependencies', omite 'devDependencies'
+
+
+🔧 INSTALACIÓN MANUAL (por paquete)
+────────────────────────────────────────────────────────────────────
+
+Si necesitas instalar paquetes individuales:
+
+# Angular Core
+npm install @angular/core@~12.2.0 @angular/common@~12.2.0
+
+# NGRX
+npm install @ngrx/store@^12.5.1 @ngrx/effects@^12.5.1
+
+# jsPDF
+npm install jspdf@^2.5.3 jspdf-autotable@^3.8.5
+
+# RxJS
+npm install rxjs@~6.6.0
+
+
+📋 VERIFICAR VERSIONES INSTALADAS
+────────────────────────────────────────────────────────────────────
+
+# Ver todas las dependencias con sus versiones
+npm list --depth=0
+
+# Ver versión de un paquete específico
+npm list @angular/core
+
+
+🔄 ACTUALIZAR DEPENDENCIAS
+────────────────────────────────────────────────────────────────────
+
+# Ver paquetes desactualizados
+npm outdated
+
+# Actualizar a versiones compatibles (respeta ^ y ~)
+npm update
+
+# Actualizar Angular a versión específica
+ng update @angular/core@12 @angular/cli@12
+
+
+═══════════════════════════════════════════════════════════════════
+  COMANDOS ÚTILES
+═══════════════════════════════════════════════════════════════════
+
+# Limpiar caché de npm
+npm cache clean --force
+
+# Reinstalar todas las dependencias desde cero
+Remove-Item -Recurse -Force node_modules
+Remove-Item package-lock.json
+npm install
+
+# Verificar integridad de paquetes
+npm audit
+
+# Arreglar vulnerabilidades automáticamente
+npm audit fix
+
+
+═══════════════════════════════════════════════════════════════════
+  NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════════
+
+⚠️  COMPATIBILIDAD DE VERSIONES
+────────────────────────────────────────────────────────────────────
+
+- Angular 12 requiere Node.js >= 12.20, 14.15, o 16.10
+- TypeScript 4.3.x es compatible con Angular 12.2.x
+- NGRX 12.x es compatible con Angular 12.x
+- RxJS 6.6.x es compatible con Angular 12.x
+
+
+📌 SÍMBOLOS EN VERSIONES (package.json)
+────────────────────────────────────────────────────────────────────
+
+- "~12.2.0"  → Permite actualizaciones de parches (12.2.1, 12.2.2)
+- "^12.5.1"  → Permite actualizaciones menores (12.6.0, 12.7.0)
+- "12.2.0"   → Versión exacta, sin actualizaciones automáticas
+
+
+🎯 PAQUETES CLAVE DEL PROYECTO
+────────────────────────────────────────────────────────────────────
+
+1. @ngrx/store + @ngrx/effects
+   → Gestión de estado global tipo Redux
+   → Usado en: src/app/features/items/state/
+
+2. jspdf + jspdf-autotable
+   → Exportación de reportes en PDF
+   → Usado en: items-list.component.ts (método exportToPDF)
+
+3. rxjs
+   → Observables para datos asíncronos
+   → Usado en: Todos los servicios y componentes
+
+4. @angular/router
+   → Navegación entre páginas
+   → Usado en: app-routing.module.ts
+
+
+═══════════════════════════════════════════════════════════════════
+  FIN DEL DOCUMENTO
+═══════════════════════════════════════════════════════════════════
+
+Generado: Octubre 2025
+Proyecto: Sistema de Gestión de Impuestos
+Versión: 1.0.0

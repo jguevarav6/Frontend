@@ -6,13 +6,13 @@ import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
 /**
- * Interfaz que representa la estructura mínima de un "Item" (post)
- * que retorna la API (id, título y cuerpo).
+ * Interfaz que representa un Item (post de API o registro local)
  */
 export interface Item {
   id: number;
   title: string;
   body: string;
+  isFavorite?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -97,15 +97,28 @@ updateItem(id: number, changes: Partial<Item>): Item | null {
     return this.readLocalItems().find(i => i.id === id);
   }
 
+  /**
+   * syncItemsToLocal
+   * Sincroniza items de la API con localStorage eliminando duplicados
+   */
+  syncItemsToLocal(items: Item[], append: boolean = false): void {
+    try {
+      const current = append ? this.readLocalItems() : [];
+      const merged = append ? [...current, ...items] : items;
+      
+      const unique = merged.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {} as { [key: number]: Item });
+      
+      const uniqueItems = Object.values(unique);
+      this.saveLocalItems(uniqueItems);
+    } catch (e) {
+      console.error('[ItemsService] Error en syncItemsToLocal:', e);
+    }
+  }
 
-
-
-
-
-
-
-  // pueda cambiarse según el build (dev/prod) y sea más fácil mockear en
-  // pruebas.
+  // API REST - URL base configurable por entorno
   private readonly baseUrl = environment.apiBaseUrl;
 
   constructor(private http: HttpClient) {}

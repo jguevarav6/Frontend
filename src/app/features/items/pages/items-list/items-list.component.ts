@@ -1,12 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { ItemsService, Item } from '../../data-access/items.service';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { combineLatest, Observable } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
 import { ToastService } from '../../../../core/toast.service';
 import { ConfirmService } from '../../../../core/confirm.service';
-import { loadItems, loadItemsSuccess, createItem, updateItem, deleteItem } from '../../state/items.actions';
-import { selectAllItems, selectItemsLoading, selectItemsTotal } from '../../state/items.selectors';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+import {
+  loadItems, loadItemsSuccess, createItem, updateItem, deleteItem, setFilter,
+  deleteItemSuccess, deleteItemsSuccess, deleteItems,
+  toggleSelectItem, clearSelection, refreshFromAPI,
+  createItemSuccess, updateItemSuccess,
+  toggleFavorite, setShowOnlyFavorites, setSortBy,
+  SortField, SortDirection
+} from '../../state/items.actions';
+
+import {
+  selectAllItems, selectItemsLoading, selectItemsTotal,
+  selectItemsFilterQuery, selectItemsSelectedIds,
+  selectFilteredItems, selectShowOnlyFavorites, selectSortBy
+} from '../../state/items.selectors';
 
 @Component({
   selector: 'app-items-list',
@@ -14,142 +30,365 @@ import { selectAllItems, selectItemsLoading, selectItemsTotal } from '../../stat
   styleUrls: ['./items-list.component.scss'],
 })
 export class ItemsListComponent implements OnInit {
-  // Items provistos por el store (NgRx)
+  // Data
   items$: Observable<Item[]>;
-
-  // Stream para la consulta (filtro) usado en el filtrado del lado cliente.
-  // querySubject emite el texto actual del buscador; 'query' es la variable
-  // vinculada al input para mostrar el texto en la UI.
-  private querySubject = new BehaviorSubject<string>('');
-  query = ''; // valor mostrado en el input
-
-  // Stream derivado que aplica el filtro de búsqueda a la lista actual.
   filteredItems$: Observable<Item[]>;
+  selectedIds$: Observable<number[]>;
+  showOnlyFavorites$: Observable<boolean>;
+  sortBy$: Observable<{ field: SortField; direction: SortDirection }>;
 
-  // Flags de estado para la UI
-  loading = false; // carga inicial
-  error: string | null = null; // mensaje de error a mostrar
+  // UI state
+  query = '';
+  loading = false;
+  error: string | null = null;
+  hasMore = true;
+  page = 1;
+  limit = 10;
 
-  // Variables de paginación
-  page = 1; // página actual
-  limit = 10; // elementos por página
-  hasMore = true; // indica si hay más páginas
-  loadingMore = false; // estado mientras carga "cargar más"
-  // Eliminamos el subject local y usamos el store + ItemsService para mantener
-  // la lista sincronizada con LocalStorage cuando el usuario crea/edita/elimina.
-
-  // ItemsService: servicio que encapsula llamadas a la API
-  // estado para manejar error de carga del logo
-  logoLoadError = false;
-  // Inline edit state
+  // Inline edit
   editingId: number | null = null;
   editModel: Partial<Item> = { title: '', body: '' };
-  constructor(private itemsSvc: ItemsService, private store: Store, private toast: ToastService, private confirmService: ConfirmService) {
-    // enlazamos items$ al selector del store
-  // Aseguramos el tipo explícito para que TypeScript infiera Observable<Item[]>
-  this.items$ = this.store.select(selectAllItems) as Observable<Item[]>;
-    this.filteredItems$ = combineLatest([this.items$, this.querySubject.asObservable()]).pipe(
-      map(([items, q]) => {
-        const term = (q || '').toLowerCase().trim();
-        if (!term) return items;
-        return items.filter((it) => it.title.toLowerCase().includes(term) || String(it.id).includes(term));
-      })
-    );
-    // sincronizamos la bandera local de loading
-  (this.store.select(selectItemsLoading) as Observable<boolean>).subscribe((v) => (this.loading = v));
 
-  // combinamos items$ y total para calcular hasMore de forma reactiva
-  combineLatest([this.items$, this.store.select(selectItemsTotal) as Observable<number | null>]).subscribe(
-    ([items, total]) => {
-      if (typeof total === 'number') {
-        this.hasMore = items.length < total;
-      } else {
-        // si no hay total disponible, mantenemos hasMore true para permitir seguir cargando
-        this.hasMore = true;
-      }
-    }
-  );
+  // Inline per-item confirmation (no native alert)
+  pendingDeleteId: number | null = null;
+  private waitingForConfirm = false;
+  private confirmTimeoutHandle: any = null;
+
+  // Logo fallback
+  logoLoadError = false;
+
+  // Control de notificaciones para evitar spam
+  private lastNotificationTime = 0;
+  private notificationCooldown = 500; // ms entre notificaciones
+
+  // Prevenir múltiples eliminaciones simultáneas
+  private isDeleting = false;
+  private deletingIds = new Set<number>();
+
+  constructor(
+    private itemsSvc: ItemsService,
+    private store: Store,
+    private toast: ToastService,
+    private confirmService: ConfirmService,
+    private actions$: Actions
+  ) {
+    this.items$ = this.store.select(selectAllItems) as Observable<Item[]>;
+    // Usar el selector combinado que incluye filtrado, favoritos y ordenamiento
+    this.filteredItems$ = this.store.select(selectFilteredItems) as Observable<Item[]>;
+    this.showOnlyFavorites$ = this.store.select(selectShowOnlyFavorites) as Observable<boolean>;
+    this.sortBy$ = this.store.select(selectSortBy);
+
+    (this.store.select(selectItemsLoading) as Observable<boolean>)
+      .subscribe((v) => (this.loading = v));
+
+    // Solo mostrar notificación si han pasado más de 500ms desde la última
+    this.actions$.pipe(ofType(deleteItemSuccess))
+      .subscribe(() => this.showThrottledNotification('✓ Elemento eliminado correctamente', 'success'));
+
+    this.actions$.pipe(ofType(deleteItemsSuccess))
+      .subscribe(({ ids }) => this.showThrottledNotification(`✓ ${ids.length} elementos eliminados`, 'success'));
+
+    this.selectedIds$ = this.store.select(selectItemsSelectedIds) as Observable<number[]>;
+
+    combineLatest([this.items$, this.store.select(selectItemsTotal) as Observable<number | null>])
+      .subscribe(([items, total]) => {
+        const itemCount = items?.length || 0;
+        // Si hay un total explícito de la API, usarlo
+        if (typeof total === 'number' && total > 0) {
+          this.hasMore = itemCount < total;
+          console.log('[ItemsListComponent] hasMore check - items:', itemCount, 'total:', total, 'hasMore:', this.hasMore);
+        } else {
+          // Sin total conocido, permitir cargar hasta que la API devuelva menos items que el límite
+          this.hasMore = itemCount > 0 && itemCount % this.limit === 0;
+          console.log('[ItemsListComponent] hasMore check (no total) - items:', itemCount, 'hasMore:', this.hasMore);
+        }
+      });
+
+    // Escuchar cuando se crea un item desde Justificación para sincronizar
+    this.actions$.pipe(ofType(createItemSuccess))
+      .subscribe(() => {
+        console.log('[ItemsListComponent] createItemSuccess detected - syncing from localStorage');
+        // Cargar items desde localStorage para sincronizar con Justificación
+        const localItems = this.itemsSvc.getLocalItems();
+        this.store.dispatch(loadItemsSuccess({ items: localItems, append: false, total: localItems.length }));
+      });
   }
 
-  // Ciclo de vida: al inicializar el componente, solicitamos la primera página
   ngOnInit(): void {
-    // solicitamos la primera página a través del store (efectos harán la llamada)
+    console.log('[ItemsListComponent] ngOnInit - Loading items from localStorage AND API');
+    // PRIMERO cargar desde localStorage para mostrar items creados en Justificación
+    const localItems = this.itemsSvc.getLocalItems();
+    if (localItems && localItems.length > 0) {
+      console.log('[ItemsListComponent] Found', localItems.length, 'items in localStorage - loading them first');
+      this.store.dispatch(loadItemsSuccess({ items: localItems, append: false, total: localItems.length }));
+    }
+    // LUEGO cargar desde API para obtener items adicionales
     this.store.dispatch(loadItems({ page: 1, limit: this.limit }));
+    this.store.select(selectItemsFilterQuery).subscribe((q) => (this.query = q || ''));
   }
 
-  // Obtiene datos del servicio y publica los resultados en itemsSubject.
-  // Esto mantiene la plantilla reactiva (lee desde items$ / filteredItems$)
-  // sin cambiar la lógica de paginación existente.
-  /**
-   * fetch
-   * Solicita una página de items al servicio y actualiza el stream interno.
-   * @param page número de página
-   * @param append si true agrega los resultados a la lista existente (paginación)
-   */
   fetch(page = 1, append = false) {
-    // Use store-driven loading flags (effects/reducer will update loading).
     this.error = null;
-
-  // solicitamos la página al store; ItemsEffects realizará la llamada y
-  // actualizará el estado. Aquí sólo disparamos la acción.
-  this.store.dispatch(loadItems({ page, limit: this.limit, append }));
-  this.page = page;
+    this.store.dispatch(loadItems({ page, limit: this.limit, append }));
+    this.page = page;
   }
 
-  /**
-   * loadMore
-   * Método llamado por el botón "Cargar más" para solicitar la siguiente página.
-   */
   loadMore() {
-    if (!this.hasMore) return;
+    if (!this.hasMore || this.loading) return;
+    console.log('[ItemsListComponent] loadMore - current page:', this.page, 'loading more...');
     this.fetch(this.page + 1, true);
   }
 
-  // Método invocado desde la plantilla cuando cambia el buscador.
-  // Actualiza el BehaviorSubject que usa filteredItems$.
   onQueryChange(value: string) {
     this.query = value;
-    this.querySubject.next(value);
+    this.store.dispatch(setFilter({ query: value }));
   }
 
-  /**
-   * Función trackBy para ngFor que mejora el rendimiento al renderizar.
-   * Usar trackBy evita re-crear elementos del DOM cuando la colección
-   * cambia, siempre que los items mantengan los mismos ids.
-   */
   trackById(index: number, item: Item) {
     return item.id;
   }
-  /**
- * Crear un item (llama al servicio que guarda en LocalStorage),
- * y después actualiza el stream interno itemsSubject para que la lista se refresque.
- */
+
   createLocalItem(title: string, body: string) {
     this.store.dispatch(createItem({ payload: { title, body } }));
   }
 
-  // Si la imagen del logo falla en cargar, activamos el fallback
   onLogoError() {
     this.logoLoadError = true;
   }
 
-/**
- * Eliminar item local (llama al servicio) y actualiza la lista visible.
- */
-removeLocalItem(id: number) {
-    this.confirmService.confirmAsync({ message: '¿Eliminar este elemento?' }).then((confirmed: boolean) => {
-      if (confirmed) this.store.dispatch(deleteItem({ id }));
-    });
-}
+  // ========= Método para evitar spam de notificaciones =========
+  private showThrottledNotification(message: string, type: 'success' | 'error' | 'info') {
+    const now = Date.now();
+    if (now - this.lastNotificationTime > this.notificationCooldown) {
+      this.toast.show(message, type);
+      this.lastNotificationTime = now;
+    }
+  }
 
-/**
- * Editar item local: actualiza y reemplaza en el stream.
- */
-editLocalItem(id: number, changes: Partial<Item>) {
-  this.store.dispatch(updateItem({ id, changes }));
-}
-  // Start an inline edit for an item
+  // ========= Confirm helper compatible con RxJS 6/7 =========
+  private confirmAsyncCompat(message: string): Promise<boolean> {
+    const svc: any = this.confirmService as any;
+
+    // Si existe confirmAsync (promesa), úsala
+    if (typeof svc.confirmAsync === 'function') {
+      try {
+        // Race with timeout but DO NOT use native alert; timeout resolves to false so caller can show inline UI
+        const svcPromise: Promise<boolean> = svc.confirmAsync({ message }).then((r: any) => !!r).catch(() => false);
+        const timeoutPromise: Promise<boolean> = new Promise((resolve) => setTimeout(() => resolve(false), 1200));
+        return Promise.race([svcPromise, timeoutPromise]);
+      } catch (e) {
+        return Promise.resolve(false);
+      }
+    }
+
+    // Si existe confirm() que devuelve Observable<boolean>, conviértelo a Promise sin firstValueFrom
+    if (typeof svc.confirm === 'function') {
+      try {
+        const obs: any = svc.confirm({ message });
+        const svcPromise: Promise<boolean> = new Promise<boolean>((resolve) => {
+          obs.pipe(take(1)).subscribe({ next: (v: any) => resolve(!!v), error: () => resolve(false) });
+        });
+        const timeoutPromise: Promise<boolean> = new Promise((resolve) => setTimeout(() => resolve(false), 1200));
+        return Promise.race([svcPromise, timeoutPromise]);
+      } catch (e) {
+        return Promise.resolve(false);
+      }
+    }
+
+    // Fallback (sin confirm service)
+    // Use native window.confirm as a last-resort fallback so the delete button actually works
+    try {
+      const result = window.confirm(message);
+      return Promise.resolve(!!result);
+    } catch (e) {
+      return Promise.resolve(false);
+    }
+    }
+
+  // ========= Eliminar un item con confirmación inline si el modal no responde =========
+  async requestDelete(id: number) {
+    // Prevenir eliminaciones simultáneas del mismo elemento
+    if (this.deletingIds.has(id)) {
+      console.log('[ItemsListComponent] Already deleting id=', id);
+      return;
+    }
+
+    try {
+      console.log('[ItemsListComponent] requestDelete called for id=', id);
+      
+      const ok = await this.confirmService.confirmAsync({ 
+        title: 'Eliminar Elemento',
+        message: '¿Está seguro que desea eliminar este elemento? Esta acción no se puede deshacer.',
+        confirmText: 'Sí, eliminar',
+        cancelText: 'Cancelar'
+      });
+      
+      console.log('[ItemsListComponent] confirmAsync returned ok=', ok);
+      
+      if (ok) {
+        console.log('[ItemsListComponent] Dispatching deleteItem for id=', id);
+        this.deletingIds.add(id);
+        this.store.dispatch(deleteItem({ id }));
+        
+        // Limpiar el flag después de 2 segundos
+        setTimeout(() => this.deletingIds.delete(id), 2000);
+      }
+    } catch (error) {
+      console.error('[ItemsListComponent] Error in requestDelete:', error);
+      this.deletingIds.delete(id);
+      this.toast.show('Error al confirmar eliminación', 'error');
+    }
+  }
+
+  confirmPendingDelete() {
+    if (!this.pendingDeleteId) return;
+    console.log('[ItemsListComponent] confirmPendingDelete dispatch id=', this.pendingDeleteId);
+    this.store.dispatch(deleteItem({ id: this.pendingDeleteId }));
+    this.pendingDeleteId = null;
+  }
+
+  cancelPendingDelete() {
+    console.log('[ItemsListComponent] cancelPendingDelete called');
+    this.pendingDeleteId = null;
+  }
+
+
+  editLocalItem(id: number, changes: Partial<Item>) {
+    console.log('[ItemsListComponent] editLocalItem called with id=', id, 'changes=', changes);
+    this.store.dispatch(updateItem({ id, changes }));
+  }
+
+  toggleSelect(id: number) {
+    this.store.dispatch(toggleSelectItem({ id }));
+  }
+
+  isSelected(id: number): Observable<boolean> {
+    return this.selectedIds$.pipe(
+      map(ids => ids.includes(id))
+    );
+  }
+
+  selectAll() {
+    combineLatest([this.filteredItems$, this.selectedIds$]).pipe(take(1)).subscribe(([items, selectedIds]) => {
+      const allSelected = items.every(item => selectedIds.includes(item.id));
+      
+      if (allSelected) {
+        // Si todos están seleccionados, deseleccionar todos
+        this.store.dispatch(clearSelection());
+      } else {
+        // Seleccionar todos los que no están seleccionados
+        items.forEach(item => {
+          if (!selectedIds.includes(item.id)) {
+            this.store.dispatch(toggleSelectItem({ id: item.id }));
+          }
+        });
+      }
+    });
+  }
+
+  clearAllSelection() {
+    this.store.dispatch(clearSelection());
+  }
+
+  // ========= Eliminar varios =========
+  async deleteSelected(ids: number[]) {
+    if (!ids || ids.length === 0) {
+      console.log('[ItemsListComponent] deleteSelected - no ids to delete');
+      return;
+    }
+
+    // Prevenir múltiples eliminaciones simultáneas
+    if (this.isDeleting) {
+      console.log('[ItemsListComponent] deleteSelected - already deleting, skipping');
+      return;
+    }
+
+    this.isDeleting = true;
+    console.log('[ItemsListComponent] deleteSelected - set isDeleting to TRUE');
+
+    try {
+      console.log('[ItemsListComponent] deleteSelected - opening confirmation for', ids.length, 'items');
+      
+      const ok = await this.confirmService.confirmAsync({
+        title: 'Eliminar Elementos',
+        message: `¿Está seguro que desea eliminar ${ids.length} elementos seleccionados? Esta acción no se puede deshacer.`,
+        confirmText: 'Sí, eliminar todos',
+        cancelText: 'Cancelar'
+      });
+      
+      console.log('[ItemsListComponent] deleteSelected - confirmation result:', ok);
+      
+      if (ok) {
+        console.log('[ItemsListComponent] deleteSelected - dispatching deleteItems');
+        this.store.dispatch(deleteItems({ ids }));
+        // La selección se limpiará automáticamente en el reducer cuando se ejecute deleteItemsSuccess
+      } else {
+        console.log('[ItemsListComponent] deleteSelected - user cancelled, keeping selection');
+        // Usuario canceló - NO limpiar la selección
+      }
+    } catch (error) {
+      console.error('[ItemsListComponent] Error in deleteSelected:', error);
+      this.toast.show('Error al eliminar elementos', 'error');
+    } finally {
+      // IMPORTANTE: Resetear flag SIEMPRE, incluso si se cancela
+      this.isDeleting = false;
+      console.log('[ItemsListComponent] deleteSelected - reset isDeleting to FALSE');
+    }
+  }
+
+  // ========= Export CSV =========
+  exportToCSV(items: Item[]) {
+    // Check if there are selected items
+    this.selectedIds$.pipe(take(1)).subscribe(selectedIds => {
+      let itemsToExport: Item[] = [];
+      
+      if (selectedIds && selectedIds.length > 0) {
+        // Export only selected items
+        itemsToExport = items.filter(item => selectedIds.includes(item.id));
+        console.log('[ItemsListComponent] exportToCSV - exporting selected items:', selectedIds.length);
+      } else {
+        // Export all filtered items
+        itemsToExport = items;
+        console.log('[ItemsListComponent] exportToCSV - exporting all items:', items.length);
+      }
+      
+      if (!itemsToExport || itemsToExport.length === 0) {
+        this.toast.show('No hay elementos para exportar', 'info');
+        return;
+      }
+      
+      const header = ['id', 'title', 'body'];
+      const rows = itemsToExport.map(i => [
+        i.id,
+        `"${(i.title || '').replace(/"/g, '""')}"`,
+        `"${(i.body || '').replace(/"/g, '""')}"`,
+      ]);
+      const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Add selection info to filename
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = selectedIds && selectedIds.length > 0 
+        ? `items_seleccionados_${selectedIds.length}_${timestamp}.csv`
+        : `items_export_${timestamp}.csv`;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      // Show success message
+      const message = selectedIds && selectedIds.length > 0
+        ? `✓ ${selectedIds.length} elementos seleccionados exportados a CSV`
+        : `✓ ${itemsToExport.length} elementos exportados a CSV`;
+      this.toast.show(message, 'success');
+    });
+  }
+
+  // ========= Inline edit =========
   startInlineEdit(item: Item) {
+    console.log('[ItemsListComponent] startInlineEdit called for item=', item);
     this.editingId = item.id;
     this.editModel = { title: item.title, body: item.body };
     setTimeout(() => {
@@ -159,13 +398,108 @@ editLocalItem(id: number, changes: Partial<Item>) {
   }
 
   saveInlineEdit() {
+    console.log('[ItemsListComponent] saveInlineEdit called, editingId=', this.editingId, 'editModel=', this.editModel);
     if (!this.editingId) return;
-    this.editLocalItem(this.editingId, { title: this.editModel.title || '', body: this.editModel.body || '' });
+    this.editLocalItem(this.editingId, {
+      title: this.editModel.title || '',
+      body: this.editModel.body || '',
+    });
     this.cancelInlineEdit();
   }
 
   cancelInlineEdit() {
+    console.log('[ItemsListComponent] cancelInlineEdit called');
     this.editingId = null;
     this.editModel = { title: '', body: '' };
+  }
+
+  // ========= Refresh from API =========
+  async refreshFromAPI() {
+    console.log('[ItemsListComponent] refreshFromAPI called');
+    this.page = 1;
+    this.store.dispatch(refreshFromAPI());
+    this.showThrottledNotification('✔️ Datos actualizados desde la API', 'success');
+  }
+
+  // ========= Favoritos/Destacados =========
+  toggleFavorite(id: number) {
+    console.log('[ItemsListComponent] toggleFavorite id=', id);
+    this.store.dispatch(toggleFavorite({ id }));
+  }
+
+  toggleShowOnlyFavorites() {
+    this.showOnlyFavorites$.pipe(take(1)).subscribe(current => {
+      this.store.dispatch(setShowOnlyFavorites({ showOnlyFavorites: !current }));
+    });
+  }
+
+  // ========= Ordenamiento =========
+  setSortBy(field: SortField, direction: SortDirection) {
+    console.log('[ItemsListComponent] setSortBy field=', field, 'direction=', direction);
+    this.store.dispatch(setSortBy({ field, direction }));
+  }
+
+  // ========= Exportación PDF =========
+  exportToPDF(items: Item[]) {
+    console.log('[ItemsListComponent] exportToPDF called with', items.length, 'items');
+    
+    this.selectedIds$.pipe(take(1)).subscribe(selectedIds => {
+      // Si hay selección, exportar solo los seleccionados
+      let itemsToExport = items;
+      if (selectedIds.length > 0) {
+        itemsToExport = items.filter(item => selectedIds.includes(item.id));
+      }
+
+      if (itemsToExport.length === 0) {
+        this.toast.show('⚠️ No hay elementos para exportar', 'info');
+        return;
+      }
+
+      try {
+        const doc = new jsPDF();
+
+        // Título
+        doc.setFontSize(18);
+        doc.text('Lista de Elementos', 14, 20);
+
+        // Subtítulo
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Exportado el ${new Date().toLocaleDateString()} - Total: ${itemsToExport.length} elementos`, 14, 28);
+
+        // Tabla
+        autoTable(doc, {
+          startY: 35,
+          head: [['ID', 'Título', 'Descripción', 'Favorito']],
+          body: itemsToExport.map(item => [
+            item.id.toString(),
+            item.title.length > 40 ? item.title.substring(0, 37) + '...' : item.title,
+            item.body.length > 60 ? item.body.substring(0, 57) + '...' : item.body,
+            item.isFavorite ? '⭐' : '-'
+          ]),
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          margin: { top: 35 }
+        });
+
+        // Guardar
+        const filename = `items_export_${new Date().getTime()}.pdf`;
+        doc.save(filename);
+        this.toast.show(`✓ PDF exportado: ${itemsToExport.length} elementos`, 'success');
+      } catch (error) {
+        console.error('[ItemsListComponent] Error exporting PDF:', error);
+        this.toast.show('❌ Error al exportar PDF', 'error');
+      }
+    });
+  }
+
+  // ========= Helpers para UI =========
+  isItemDeleting(id: number): boolean {
+    return this.deletingIds.has(id);
+  }
+
+  isAnyDeleting(): boolean {
+    return this.isDeleting || this.deletingIds.size > 0;
   }
 }

@@ -6,8 +6,7 @@ import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
 import { ToastService } from '../../../../core/toast.service';
 import { ConfirmService } from '../../../../core/confirm.service';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { ExportService } from '../../../../core/export.service';
 
 import {
   loadItems, loadItemsSuccess, createItem, updateItem, deleteItem, setFilter,
@@ -70,7 +69,8 @@ export class ItemsListComponent implements OnInit {
     private store: Store,
     private toast: ToastService,
     private confirmService: ConfirmService,
-    private actions$: Actions
+    private actions$: Actions,
+    private exportService: ExportService
   ) {
     this.items$ = this.store.select(selectAllItems) as Observable<Item[]>;
     // Usar el selector combinado que incluye filtrado, favoritos y ordenamiento
@@ -81,12 +81,8 @@ export class ItemsListComponent implements OnInit {
     (this.store.select(selectItemsLoading) as Observable<boolean>)
       .subscribe((v) => (this.loading = v));
 
-    // Solo mostrar notificación si han pasado más de 500ms desde la última
-    this.actions$.pipe(ofType(deleteItemSuccess))
-      .subscribe(() => this.showThrottledNotification('✓ Elemento eliminado correctamente', 'success'));
-
-    this.actions$.pipe(ofType(deleteItemsSuccess))
-      .subscribe(({ ids }) => this.showThrottledNotification(`✓ ${ids.length} elementos eliminados`, 'success'));
+    // ELIMINADO: Notificaciones duplicadas que causaban el problema
+    // Las notificaciones ahora se muestran solo en los métodos requestDelete y deleteSelected
 
     this.selectedIds$ = this.store.select(selectItemsSelectedIds) as Observable<number[]>;
 
@@ -96,18 +92,15 @@ export class ItemsListComponent implements OnInit {
         // Si hay un total explícito de la API, usarlo
         if (typeof total === 'number' && total > 0) {
           this.hasMore = itemCount < total;
-          console.log('[ItemsListComponent] hasMore check - items:', itemCount, 'total:', total, 'hasMore:', this.hasMore);
         } else {
           // Sin total conocido, permitir cargar hasta que la API devuelva menos items que el límite
           this.hasMore = itemCount > 0 && itemCount % this.limit === 0;
-          console.log('[ItemsListComponent] hasMore check (no total) - items:', itemCount, 'hasMore:', this.hasMore);
         }
       });
 
     // Escuchar cuando se crea un item desde Justificación para sincronizar
     this.actions$.pipe(ofType(createItemSuccess))
       .subscribe(() => {
-        console.log('[ItemsListComponent] createItemSuccess detected - syncing from localStorage');
         // Cargar items desde localStorage para sincronizar con Justificación
         const localItems = this.itemsSvc.getLocalItems();
         this.store.dispatch(loadItemsSuccess({ items: localItems, append: false, total: localItems.length }));
@@ -115,11 +108,9 @@ export class ItemsListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('[ItemsListComponent] ngOnInit - Loading items from localStorage AND API');
     // PRIMERO cargar desde localStorage para mostrar items creados en Justificación
     const localItems = this.itemsSvc.getLocalItems();
     if (localItems && localItems.length > 0) {
-      console.log('[ItemsListComponent] Found', localItems.length, 'items in localStorage - loading them first');
       this.store.dispatch(loadItemsSuccess({ items: localItems, append: false, total: localItems.length }));
     }
     // LUEGO cargar desde API para obtener items adicionales
@@ -135,7 +126,6 @@ export class ItemsListComponent implements OnInit {
 
   loadMore() {
     if (!this.hasMore || this.loading) return;
-    console.log('[ItemsListComponent] loadMore - current page:', this.page, 'loading more...');
     this.fetch(this.page + 1, true);
   }
 
@@ -209,12 +199,10 @@ export class ItemsListComponent implements OnInit {
   async requestDelete(id: number) {
     // Prevenir eliminaciones simultáneas del mismo elemento
     if (this.deletingIds.has(id)) {
-      console.log('[ItemsListComponent] Already deleting id=', id);
       return;
     }
 
     try {
-      console.log('[ItemsListComponent] requestDelete called for id=', id);
       
       const ok = await this.confirmService.confirmAsync({ 
         title: 'Eliminar Elemento',
@@ -223,18 +211,20 @@ export class ItemsListComponent implements OnInit {
         cancelText: 'Cancelar'
       });
       
-      console.log('[ItemsListComponent] confirmAsync returned ok=', ok);
       
       if (ok) {
-        console.log('[ItemsListComponent] Dispatching deleteItem for id=', id);
         this.deletingIds.add(id);
         this.store.dispatch(deleteItem({ id }));
+        
+        // Mostrar notificación después de dispatch
+        setTimeout(() => {
+          this.toast.show('✓ Elemento eliminado correctamente', 'success');
+        }, 100);
         
         // Limpiar el flag después de 2 segundos
         setTimeout(() => this.deletingIds.delete(id), 2000);
       }
     } catch (error) {
-      console.error('[ItemsListComponent] Error in requestDelete:', error);
       this.deletingIds.delete(id);
       this.toast.show('Error al confirmar eliminación', 'error');
     }
@@ -242,19 +232,16 @@ export class ItemsListComponent implements OnInit {
 
   confirmPendingDelete() {
     if (!this.pendingDeleteId) return;
-    console.log('[ItemsListComponent] confirmPendingDelete dispatch id=', this.pendingDeleteId);
     this.store.dispatch(deleteItem({ id: this.pendingDeleteId }));
     this.pendingDeleteId = null;
   }
 
   cancelPendingDelete() {
-    console.log('[ItemsListComponent] cancelPendingDelete called');
     this.pendingDeleteId = null;
   }
 
 
   editLocalItem(id: number, changes: Partial<Item>) {
-    console.log('[ItemsListComponent] editLocalItem called with id=', id, 'changes=', changes);
     this.store.dispatch(updateItem({ id, changes }));
   }
 
@@ -293,21 +280,17 @@ export class ItemsListComponent implements OnInit {
   // ========= Eliminar varios =========
   async deleteSelected(ids: number[]) {
     if (!ids || ids.length === 0) {
-      console.log('[ItemsListComponent] deleteSelected - no ids to delete');
       return;
     }
 
     // Prevenir múltiples eliminaciones simultáneas
     if (this.isDeleting) {
-      console.log('[ItemsListComponent] deleteSelected - already deleting, skipping');
       return;
     }
 
     this.isDeleting = true;
-    console.log('[ItemsListComponent] deleteSelected - set isDeleting to TRUE');
 
     try {
-      console.log('[ItemsListComponent] deleteSelected - opening confirmation for', ids.length, 'items');
       
       const ok = await this.confirmService.confirmAsync({
         title: 'Eliminar Elementos',
@@ -316,69 +299,50 @@ export class ItemsListComponent implements OnInit {
         cancelText: 'Cancelar'
       });
       
-      console.log('[ItemsListComponent] deleteSelected - confirmation result:', ok);
       
       if (ok) {
-        console.log('[ItemsListComponent] deleteSelected - dispatching deleteItems');
         this.store.dispatch(deleteItems({ ids }));
+        
+        // Mostrar notificación después de dispatch
+        setTimeout(() => {
+          this.toast.show(`✓ ${ids.length} elementos eliminados correctamente`, 'success');
+        }, 100);
+        
         // La selección se limpiará automáticamente en el reducer cuando se ejecute deleteItemsSuccess
       } else {
-        console.log('[ItemsListComponent] deleteSelected - user cancelled, keeping selection');
         // Usuario canceló - NO limpiar la selección
       }
     } catch (error) {
-      console.error('[ItemsListComponent] Error in deleteSelected:', error);
       this.toast.show('Error al eliminar elementos', 'error');
     } finally {
       // IMPORTANTE: Resetear flag SIEMPRE, incluso si se cancela
       this.isDeleting = false;
-      console.log('[ItemsListComponent] deleteSelected - reset isDeleting to FALSE');
     }
   }
 
   // ========= Export CSV =========
   exportToCSV(items: Item[]) {
-    // Check if there are selected items
     this.selectedIds$.pipe(take(1)).subscribe(selectedIds => {
       let itemsToExport: Item[] = [];
       
       if (selectedIds && selectedIds.length > 0) {
-        // Export only selected items
         itemsToExport = items.filter(item => selectedIds.includes(item.id));
-        console.log('[ItemsListComponent] exportToCSV - exporting selected items:', selectedIds.length);
       } else {
-        // Export all filtered items
         itemsToExport = items;
-        console.log('[ItemsListComponent] exportToCSV - exporting all items:', items.length);
       }
       
       if (!itemsToExport || itemsToExport.length === 0) {
         this.toast.show('No hay elementos para exportar', 'info');
         return;
       }
-      
-      const header = ['id', 'title', 'body'];
-      const rows = itemsToExport.map(i => [
-        i.id,
-        `"${(i.title || '').replace(/"/g, '""')}"`,
-        `"${(i.body || '').replace(/"/g, '""')}"`,
-      ]);
-      const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      
-      // Add selection info to filename
+
       const timestamp = new Date().toISOString().split('T')[0];
       const filename = selectedIds && selectedIds.length > 0 
-        ? `items_seleccionados_${selectedIds.length}_${timestamp}.csv`
-        : `items_export_${timestamp}.csv`;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+        ? `items_seleccionados_${selectedIds.length}_${timestamp}`
+        : `items_export_${timestamp}`;
+
+      this.exportService.exportToCSV(itemsToExport, filename);
       
-      // Show success message
       const message = selectedIds && selectedIds.length > 0
         ? `✓ ${selectedIds.length} elementos seleccionados exportados a CSV`
         : `✓ ${itemsToExport.length} elementos exportados a CSV`;
@@ -388,7 +352,6 @@ export class ItemsListComponent implements OnInit {
 
   // ========= Inline edit =========
   startInlineEdit(item: Item) {
-    console.log('[ItemsListComponent] startInlineEdit called for item=', item);
     this.editingId = item.id;
     this.editModel = { title: item.title, body: item.body };
     setTimeout(() => {
@@ -398,7 +361,6 @@ export class ItemsListComponent implements OnInit {
   }
 
   saveInlineEdit() {
-    console.log('[ItemsListComponent] saveInlineEdit called, editingId=', this.editingId, 'editModel=', this.editModel);
     if (!this.editingId) return;
     this.editLocalItem(this.editingId, {
       title: this.editModel.title || '',
@@ -408,14 +370,12 @@ export class ItemsListComponent implements OnInit {
   }
 
   cancelInlineEdit() {
-    console.log('[ItemsListComponent] cancelInlineEdit called');
     this.editingId = null;
     this.editModel = { title: '', body: '' };
   }
 
   // ========= Refresh from API =========
   async refreshFromAPI() {
-    console.log('[ItemsListComponent] refreshFromAPI called');
     this.page = 1;
     this.store.dispatch(refreshFromAPI());
     this.showThrottledNotification('✔️ Datos actualizados desde la API', 'success');
@@ -423,7 +383,6 @@ export class ItemsListComponent implements OnInit {
 
   // ========= Favoritos/Destacados =========
   toggleFavorite(id: number) {
-    console.log('[ItemsListComponent] toggleFavorite id=', id);
     this.store.dispatch(toggleFavorite({ id }));
   }
 
@@ -435,16 +394,12 @@ export class ItemsListComponent implements OnInit {
 
   // ========= Ordenamiento =========
   setSortBy(field: SortField, direction: SortDirection) {
-    console.log('[ItemsListComponent] setSortBy field=', field, 'direction=', direction);
     this.store.dispatch(setSortBy({ field, direction }));
   }
 
   // ========= Exportación PDF =========
   exportToPDF(items: Item[]) {
-    console.log('[ItemsListComponent] exportToPDF called with', items.length, 'items');
-    
     this.selectedIds$.pipe(take(1)).subscribe(selectedIds => {
-      // Si hay selección, exportar solo los seleccionados
       let itemsToExport = items;
       if (selectedIds.length > 0) {
         itemsToExport = items.filter(item => selectedIds.includes(item.id));
@@ -455,42 +410,13 @@ export class ItemsListComponent implements OnInit {
         return;
       }
 
-      try {
-        const doc = new jsPDF();
-
-        // Título
-        doc.setFontSize(18);
-        doc.text('Lista de Elementos', 14, 20);
-
-        // Subtítulo
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text(`Exportado el ${new Date().toLocaleDateString()} - Total: ${itemsToExport.length} elementos`, 14, 28);
-
-        // Tabla
-        autoTable(doc, {
-          startY: 35,
-          head: [['ID', 'Título', 'Descripción', 'Favorito']],
-          body: itemsToExport.map(item => [
-            item.id.toString(),
-            item.title.length > 40 ? item.title.substring(0, 37) + '...' : item.title,
-            item.body.length > 60 ? item.body.substring(0, 57) + '...' : item.body,
-            item.isFavorite ? '⭐' : '-'
-          ]),
-          styles: { fontSize: 9 },
-          headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-          alternateRowStyles: { fillColor: [248, 250, 252] },
-          margin: { top: 35 }
+      this.exportService.exportToPDF(itemsToExport, `items_export_${Date.now()}`)
+        .then(() => {
+          this.toast.show(`✓ PDF exportado: ${itemsToExport.length} elementos`, 'success');
+        })
+        .catch(error => {
+          this.toast.show('❌ Error al exportar PDF', 'error');
         });
-
-        // Guardar
-        const filename = `items_export_${new Date().getTime()}.pdf`;
-        doc.save(filename);
-        this.toast.show(`✓ PDF exportado: ${itemsToExport.length} elementos`, 'success');
-      } catch (error) {
-        console.error('[ItemsListComponent] Error exporting PDF:', error);
-        this.toast.show('❌ Error al exportar PDF', 'error');
-      }
     });
   }
 

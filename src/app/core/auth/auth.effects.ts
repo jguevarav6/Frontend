@@ -25,7 +25,7 @@ export class AuthEffects {
           map(response => {
             // Si requiere verificación, mostrar mensaje y no hacer login
             if (response.requiresVerification) {
-              this.toast.show('📧 Código enviado! Revisa tu email (o consola si EmailJS no está configurado)', 'info', 6000);
+              this.toast.show('📧 Código de verificación generado. Abre F12 → Consola para verlo', 'info', 6000);
               return AuthActions.loginFailure({ 
                 error: 'VERIFICATION_REQUIRED',
                 requiresVerification: true 

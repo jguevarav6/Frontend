@@ -1,0 +1,21 @@
+﻿
+> listados@0.0.0 test C:\Users\pedro\OneDrive\Desktop\Proyectos_Santiago\Impuestos\listados
+> ng test "--watch=false"
+
+npm : - Generating browser application bundles (phase: setup)...
+En línea: 1 Carácter: 1
++ npm test -- --watch=false 2>&1 | Out-File -FilePath 
+"test-results.txt ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (- Generating br...h 
+   ase: setup)...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+05 10 2025 01:36:12.740:INFO [karma-server]: Karma v6.3.20 server started at http://localhost:9877/
+05 10 2025 01:36:12.741:INFO [launcher]: Launching browsers Chrome with concurrency unlimited
+05 10 2025 01:36:12.746:INFO [launcher]: Starting browser Chrome
+Ô£ö Browser application bundle generation complete.
+05 10 2025 01:36:17.073:INFO [Chrome 140.0.0.0 (Windows 10)]: Connected on socket cPqy2EyS6-a4Qrs6AAAB with id 58643277
+Chrome 140.0.0.0 (Windows 10): Executed 0 of 78[32m SUCCESS[39m (0 secs / 0 secs)
+[1A[2KChrome 140.0.0.0 (Windows 10): Executed 1 of 78[32m SUCCESS[39m (0 secs / 0.008 secs)
+[1A[2KChrome 140.0.0.0 (Windows 10): Executed 2 of 78[32m SUCCESS[39m (0 secs / 0.817 secs)

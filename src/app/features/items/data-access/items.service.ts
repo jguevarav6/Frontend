@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { StorageService } from '../../../core/storage.service';
 
 /**
  * Interfaz que representa un Item (post de API o registro local)
@@ -17,49 +18,47 @@ export interface Item {
 
 @Injectable({ providedIn: 'root' })
 export class ItemsService {
-  /** 
- * Lee del LocalStorage la lista guardada (si existe), si no existe devuelve [].
- */
-  private readLocalItems(): Item[]{
-    try {
-      const raw = localStorage.getItem('items_local');
-      return raw ? JSON.parse(raw) as Item []: [];
+  private readonly STORAGE_KEY = 'items_local';
 
-    }catch{
-      return [];
-    }
+  /** 
+   * Lee del LocalStorage la lista guardada (si existe), si no existe devuelve [].
+   */
+  private readLocalItems(): Item[] {
+    return this.storage.getItem<Item[]>(this.STORAGE_KEY, []) || [];
   }
 
   /**
- * Guarda en LocalStorage la lista completa.
- */
-private saveLocalItems(items:Item[]) {
-  localStorage.setItem('items_local', JSON.stringify(items));
-}
+   * Guarda en LocalStorage la lista completa.
+   */
+  private saveLocalItems(items: Item[]) {
+    this.storage.setItem(this.STORAGE_KEY, items);
+  }
 
-/**
- * createItem - crea un item localmente y lo persiste.
- * Devuelve el item creado.
- */
+  /**
+   * createItem - crea un item localmente y lo persiste.
+   * Devuelve el item creado.
+   */
+  // Usar la variable del environment para la URL base de la API, de modo que
+  createItem(payload: Partial<Item>): Item {
+    const current = this.readLocalItems();
+    // Generar un id nuevo (simplemente +1 del mayor id actual)
+    const maxId = current.length ? Math.max(...current.map(i => i.id)) : 0;
+    const newItem: Item = {
+      id: maxId + 1,
+      title: payload.title || '',
+      body: payload.body || ''
+    };
+    const updated = [...current, newItem];
+    this.saveLocalItems(updated);
+    return newItem;
+  }
 
+  constructor(
+    private http: HttpClient,
+    private storage: StorageService
+  ) { }
 
-// Usar la variable del environment para la URL base de la API, de modo que
-createItem( payload: Partial<Item>): Item {
-  const current = this.readLocalItems();
-  //Generar un id nuevo (simplemente +1 del mayor id actual)
-  const maxId= current.length ? Math.max(...current.map(i=>i.id)):0;
-  const newItem: Item = {
-    id: maxId +1,
-    title: payload.title || '',
-    body: payload.body || ''
-  };
-  const updated = [...current, newItem];
-  this.saveLocalItems(updated);
-  return newItem;
-}
-
-
-updateItem(id: number, changes: Partial<Item>): Item | null {
+  updateItem(id: number, changes: Partial<Item>): Item | null {
   const current = this.readLocalItems();
   let updated: Item | null = null;
   const next = current.map(it => {
@@ -120,8 +119,6 @@ updateItem(id: number, changes: Partial<Item>): Item | null {
 
   // API REST - URL base configurable por entorno
   private readonly baseUrl = environment.apiBaseUrl;
-
-  constructor(private http: HttpClient) {}
 
   /**
    * getItems

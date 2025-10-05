@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, switchMap, catchError } from 'rxjs/operators';
 import { EmailService } from '../email.service';
+import { StorageService } from '../storage.service';
 
 export interface User {
   id: number;
@@ -42,7 +43,10 @@ export class AuthService {
   private readonly CURRENT_USER_KEY = 'app_current_user';
   private readonly VERIFICATION_CODE_KEY = 'app_verification_code';
 
-  constructor(private emailService: EmailService) {}
+  constructor(
+    private emailService: EmailService,
+    private storage: StorageService
+  ) {}
 
   /**
    * Registrar nuevo usuario
@@ -181,29 +185,22 @@ export class AuthService {
    * Cerrar sesión
    */
   logout(): void {
-    localStorage.removeItem(this.AUTH_KEY);
-    localStorage.removeItem(this.CURRENT_USER_KEY);
+    this.storage.removeItem(this.AUTH_KEY);
+    this.storage.removeItem(this.CURRENT_USER_KEY);
   }
 
   /**
    * Obtener usuario actual desde localStorage
    */
   getCurrentUser(): User | null {
-    const userJson = localStorage.getItem(this.CURRENT_USER_KEY);
-    if (!userJson) return null;
-    
-    try {
-      return JSON.parse(userJson);
-    } catch {
-      return null;
-    }
+    return this.storage.getItem<User>(this.CURRENT_USER_KEY, null);
   }
 
   /**
    * Obtener token actual
    */
   getToken(): string | null {
-    return localStorage.getItem(this.AUTH_KEY);
+    return this.storage.getItem<string>(this.AUTH_KEY, null);
   }
 
   /**
@@ -225,8 +222,8 @@ export class AuthService {
   // ========== MÉTODOS PRIVADOS ==========
 
   private getStoredUsers(): any[] {
-    const usersJson = localStorage.getItem(this.USERS_KEY);
-    if (!usersJson) {
+    const users = this.storage.getItem<any[]>(this.USERS_KEY, null);
+    if (!users) {
       // Crear usuarios por defecto
       const defaultUsers = [
         {
@@ -244,20 +241,15 @@ export class AuthService {
           password: this.hashPassword('user123')
         }
       ];
-      localStorage.setItem(this.USERS_KEY, JSON.stringify(defaultUsers));
+      this.storage.setItem(this.USERS_KEY, defaultUsers);
       return defaultUsers;
     }
-    
-    try {
-      return JSON.parse(usersJson);
-    } catch {
-      return [];
-    }
+    return users;
   }
 
   private saveSession(user: User, token: string): void {
-    localStorage.setItem(this.AUTH_KEY, token);
-    localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(user));
+    this.storage.setItem(this.AUTH_KEY, token);
+    this.storage.setItem(this.CURRENT_USER_KEY, user);
   }
 
   private generateToken(user: User): string {
@@ -295,53 +287,40 @@ export class AuthService {
       code,
       expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutos
     };
-    localStorage.setItem(this.VERIFICATION_CODE_KEY, JSON.stringify(verificationData));
+    this.storage.setItem(this.VERIFICATION_CODE_KEY, verificationData);
   }
 
   /**
    * Verifica si el código proporcionado es correcto y no ha expirado
    */
   private verifyCode(email: string, code: string): boolean {
-    const storedData = localStorage.getItem(this.VERIFICATION_CODE_KEY);
-    if (!storedData) {
+    const verificationData = this.storage.getItem<any>(this.VERIFICATION_CODE_KEY, null);
+    if (!verificationData) {
       return false;
     }
 
-    try {
-      const verificationData = JSON.parse(storedData);
-      
-      // Verificar email
-      if (verificationData.email !== email.toLowerCase()) {
-        return false;
-      }
-
-      // Verificar expiración
-      if (Date.now() > verificationData.expiresAt) {
-        this.clearVerificationCode(email);
-        return false;
-      }
-
-      // Verificar código
-      return verificationData.code === code;
-    } catch {
+    // Verificar email
+    if (verificationData.email !== email.toLowerCase()) {
       return false;
     }
+
+    // Verificar expiración
+    if (Date.now() > verificationData.expiresAt) {
+      this.clearVerificationCode(email);
+      return false;
+    }
+
+    // Verificar código
+    return verificationData.code === code;
   }
 
   /**
    * Limpia el código de verificación
    */
   private clearVerificationCode(email: string): void {
-    const storedData = localStorage.getItem(this.VERIFICATION_CODE_KEY);
-    if (storedData) {
-      try {
-        const verificationData = JSON.parse(storedData);
-        if (verificationData.email === email.toLowerCase()) {
-          localStorage.removeItem(this.VERIFICATION_CODE_KEY);
-        }
-      } catch {
-        localStorage.removeItem(this.VERIFICATION_CODE_KEY);
-      }
+    const verificationData = this.storage.getItem<any>(this.VERIFICATION_CODE_KEY, null);
+    if (verificationData?.email === email.toLowerCase()) {
+      this.storage.removeItem(this.VERIFICATION_CODE_KEY);
     }
   }
 }
